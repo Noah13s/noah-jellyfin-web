@@ -1,3 +1,4 @@
+import { detectBudget } from '../plugins/noah/policy';
 import { Api } from '@jellyfin/sdk';
 import type { EndPointInfo } from '@jellyfin/sdk/lib/generated-client/models/end-point-info';
 import { getSystemApi } from '@jellyfin/sdk/lib/utils/api/system-api';
@@ -201,7 +202,7 @@ const detectBitrateWithEndpointInfo = (api: Api, endpointInfo: EndPointInfo) => 
  * @param {boolean} force Ignore the cached bitrate and force a re-detection
  * @returns {number} The detected bitrate
  */
-export const detectBitrate = (api: Api, force: boolean) => {
+const nativeDetectBitrate = (api: Api, force: boolean) => {
     if (!force
         && lastDetectedBitrate
         && Date.now() - (lastDetectedBitrateTime || 0) <= BITRATE_CACHE_DURATION) {
@@ -223,3 +224,5 @@ export const detectBitrate = (api: Api, force: boolean) => {
 
     return pendingBitrateDetection;
 };
+
+export const detectBitrate = (api: Api, force: boolean) => detectBudget(api, () => nativeDetectBitrate(api, force));

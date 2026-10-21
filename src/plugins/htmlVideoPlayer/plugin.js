@@ -1,3 +1,4 @@
+import * as seerr from '../noah/policy';
 import DOMPurify from 'dompurify';
 import debounce from 'lodash-es/debounce';
 import Screenfull from 'screenfull';
@@ -513,10 +514,15 @@ export class HtmlVideoPlayer {
                 .catch((error) => console.warn('[libbitsub] worker prewarm failed; renderer fallback will be used', error));
         }
 
+        const ticket = seerr.hooks.ticket();
         const elem = await this.createMediaElement(options);
+        if (!seerr.hooks.current(ticket)) throw new Error('PLAYER_STOPPED');
+        seerr.setVideo(elem);
+        seerr.hooks.bindVideo(elem, this);
         this.#applyAspectRatio(options.aspectRatio || this.getAspectRatio());
 
         await this.updateVideoUrl(options);
+        if (!seerr.hooks.current(ticket)) throw new Error('PLAYER_STOPPED');
         return this.setCurrentSrc(elem, options);
     }
 
@@ -524,7 +530,9 @@ export class HtmlVideoPlayer {
      * @private
      */
     setSrcWithFlvJs(elem, options, url) {
+        const ticket = seerr.hooks.ticket();
         return import('flv.js').then(({ default: flvjs }) => {
+            if (!seerr.hooks.current(ticket)) throw new Error('PLAYER_STOPPED');
             const flvPlayer = flvjs.createPlayer({
                 type: 'flv',
                 url: url
@@ -550,8 +558,10 @@ export class HtmlVideoPlayer {
      * @private
      */
     setSrcWithHlsJs(elem, options, url) {
+        const ticket = seerr.hooks.ticket();
         return new Promise((resolve, reject) => {
             requireHlsPlayer(async () => {
+                if (!seerr.hooks.current(ticket)) return reject(new Error('PLAYER_STOPPED'));
                 let maxBufferLength = 30;
 
                 // Some browsers cannot handle huge fragments in high bitrate.
@@ -563,6 +573,7 @@ export class HtmlVideoPlayer {
                 }
 
                 const includeCorsCredentials = await getIncludeCorsCredentials();
+                if (!seerr.hooks.current(ticket)) return reject(new Error('PLAYER_STOPPED'));
 
                 const hls = new Hls({
                     startPosition: options.playerStartPositionTicks / 10000000,
@@ -570,7 +581,10 @@ export class HtmlVideoPlayer {
                     maxBufferLength: maxBufferLength,
                     maxMaxBufferLength: maxBufferLength,
                     videoPreference: { preferHDR: true },
-                    xhrSetup(xhr) {
+                    ...(seerr.local ? { workerPath: new URL('assets/hls.worker-1.6.16.js', document.baseURI).href, testBandwidth: false } : {}),
+                    xhrSetup(xhr, url) {
+                        const adjusted = seerr.streamUrl(url);
+                        if (adjusted !== url) xhr.open('GET', adjusted, true);
                         xhr.withCredentials = includeCorsCredentials;
                     }
                 });
@@ -591,9 +605,11 @@ export class HtmlVideoPlayer {
      * @private
      */
     async setCurrentSrc(elem, options) {
+        const ticket = seerr.hooks.ticket();
+        if (!seerr.hooks.current(ticket)) throw new Error('PLAYER_STOPPED');
         elem.removeEventListener('error', this.onError);
 
-        let val = options.url;
+        let val = seerr.streamUrl(options.url, options.playerStartPositionTicks || 0);
         console.debug(`playing url: ${val}`);
 
         // Convert to seconds
@@ -652,6 +668,7 @@ export class HtmlVideoPlayer {
             elem.autoplay = true;
 
             const includeCorsCredentials = await getIncludeCorsCredentials();
+            if (!seerr.hooks.current(ticket)) throw new Error('PLAYER_STOPPED');
             if (includeCorsCredentials) {
                 // Safari will not send cookies without this
                 elem.crossOrigin = 'use-credentials';
@@ -1350,7 +1367,7 @@ export class HtmlVideoPlayer {
                 throw new Error(response);
             }
 
-            return response.json();
+            return seerr.normalizeSubtitle(await response.json());
         } finally {
             this.decrementFetchQueue();
         }
@@ -1799,7 +1816,17 @@ export class HtmlVideoPlayer {
     /**
      * @private
      */
+    prepareEmbedded(hls) {
+        this._seerrCreating ||= this._createMediaElement({ fullscreen: false }).finally(() => { this._seerrCreating = null; });
+        return Promise.all([this._seerrCreating, import('../../styles/videoosd.scss'), ...(hls ? [import('hls.js/dist/hls.js')] : [])]);
+    }
+
     createMediaElement(options) {
+        if (seerr.local && this._seerrCreating) return this._seerrCreating.then(() => this._createMediaElement(options));
+        return this._createMediaElement(options);
+    }
+
+    _createMediaElement(options) {
         const dlg = document.querySelector('.videoPlayerContainer');
 
         if (!dlg) {
@@ -1846,7 +1873,7 @@ export class HtmlVideoPlayer {
                 videoElement.addEventListener('click', this.onClick);
                 videoElement.addEventListener('dblclick', this.onDblClick);
                 videoElement.addEventListener('waiting', this.onWaiting);
-                if (options.backdropUrl) {
+                if (options.backdropUrl && !seerr.local) {
                     videoElement.poster = options.backdropUrl;
                 }
 
@@ -1892,7 +1919,7 @@ export class HtmlVideoPlayer {
             }
 
             const videoElement = dlg.querySelector('video');
-            if (options.backdropUrl) {
+            if (options.backdropUrl && !seerr.local) {
                 // update backdrop image
                 videoElement.poster = options.backdropUrl;
             }
@@ -1923,7 +1950,7 @@ export class HtmlVideoPlayer {
      * @private
      */
     getDeviceProfile(item, options) {
-        return HtmlVideoPlayer.getDeviceProfileInternal(item, options).then((profile) => {
+        return seerr.cachedProfile(item, options, () => HtmlVideoPlayer.getDeviceProfileInternal(item, options)).then((profile) => {
             this.#lastProfile = profile;
             return profile;
         });

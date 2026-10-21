@@ -1,0 +1,34 @@
+name: Noah source player
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main, 'codex/**']
+    tags: ['noah-web-*']
+permissions:
+  contents: read
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: 24
+          cache: npm
+      # Upstream's locked classlist.js tarball is a remote package with integrity.
+      - run: npm ci --allow-remote=all --no-audit --no-fund
+      - run: node scripts/verify-noah-source.mjs
+      - run: npm run build:check
+      - run: npx vitest run src/plugins/noah
+      - run: npm run build:production
+        env:
+          NODE_OPTIONS: --max-old-space-size=4096
+          JELLYFIN_VERSION: Noah-${{ github.sha }}
+      - run: node scripts/noah-manifest.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: noah-web-${{ github.sha }}
+          path: dist/
+          retention-days: 14
