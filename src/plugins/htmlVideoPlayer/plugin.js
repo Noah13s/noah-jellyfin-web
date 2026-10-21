@@ -530,7 +530,9 @@ export class HtmlVideoPlayer {
      * @private
      */
     setSrcWithFlvJs(elem, options, url) {
+        const ticket = seerr.hooks.ticket();
         return import('flv.js').then(({ default: flvjs }) => {
+            if (!seerr.hooks.current(ticket)) throw new Error('PLAYER_STOPPED');
             const flvPlayer = flvjs.createPlayer({
                 type: 'flv',
                 url: url
@@ -556,8 +558,10 @@ export class HtmlVideoPlayer {
      * @private
      */
     setSrcWithHlsJs(elem, options, url) {
+        const ticket = seerr.hooks.ticket();
         return new Promise((resolve, reject) => {
             requireHlsPlayer(async () => {
+                if (!seerr.hooks.current(ticket)) return reject(new Error('PLAYER_STOPPED'));
                 let maxBufferLength = 30;
 
                 // Some browsers cannot handle huge fragments in high bitrate.
@@ -569,6 +573,7 @@ export class HtmlVideoPlayer {
                 }
 
                 const includeCorsCredentials = await getIncludeCorsCredentials();
+                if (!seerr.hooks.current(ticket)) return reject(new Error('PLAYER_STOPPED'));
 
                 const hls = new Hls({
                     startPosition: options.playerStartPositionTicks / 10000000,
@@ -600,6 +605,8 @@ export class HtmlVideoPlayer {
      * @private
      */
     async setCurrentSrc(elem, options) {
+        const ticket = seerr.hooks.ticket();
+        if (!seerr.hooks.current(ticket)) throw new Error('PLAYER_STOPPED');
         elem.removeEventListener('error', this.onError);
 
         let val = seerr.streamUrl(options.url, options.playerStartPositionTicks || 0);
@@ -661,6 +668,7 @@ export class HtmlVideoPlayer {
             elem.autoplay = true;
 
             const includeCorsCredentials = await getIncludeCorsCredentials();
+            if (!seerr.hooks.current(ticket)) throw new Error('PLAYER_STOPPED');
             if (includeCorsCredentials) {
                 // Safari will not send cookies without this
                 elem.crossOrigin = 'use-credentials';
