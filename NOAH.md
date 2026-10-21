@@ -1,6 +1,6 @@
 # Noah Stream source integration
 
-Upstream: Jellyfin Web `v12.0`, commit `0e83c6a724b31f3e9b5a499244331a288c060a4a`.
+Upstream: Jellyfin Web `v12.2`, commit `61b1f890365ad15138e943e694af723c1d47df2a`.
 This fork deliberately preserves the production browser policies during the source migration.
 
 `src/plugins/noah/policy.js` owns explicit profile, source URL, capability and PlaybackInfo caches. The native manager calls it directly; browser APIs and SDK methods are not replaced. `embedded.js` owns local preparation, first-frame events, cancellation, bounded recovery and exact-session cleanup. `protocol.js` exposes version 1 of the same-origin, source-window/frame-identity checked command/event contract.
