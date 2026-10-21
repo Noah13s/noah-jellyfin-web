@@ -518,7 +518,7 @@ export class HtmlVideoPlayer {
         const elem = await this.createMediaElement(options);
         if (!seerr.hooks.current(ticket)) throw new Error('PLAYER_STOPPED');
         seerr.setVideo(elem);
-        seerr.hooks.bindVideo(elem);
+        seerr.hooks.bindVideo(elem, this);
         this.#applyAspectRatio(options.aspectRatio || this.getAspectRatio());
 
         await this.updateVideoUrl(options);

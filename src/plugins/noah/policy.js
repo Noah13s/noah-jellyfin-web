@@ -17,6 +17,11 @@ export let currentVideo;
 export function setVideo(video) {
     currentVideo = video;
 }
+// More than one local plugin advertises Video (including YouTube). Select the
+// native HTML player through the explicit preparation contract owned here.
+export function nativeVideoPlayer(players) {
+    return players.find(player => typeof player.prepareEmbedded === 'function');
+}
 const clone = value => JSON.parse(JSON.stringify(value));
 const network = () => {
     const connection = Reflect.get(navigator, 'connection');

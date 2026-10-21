@@ -15,6 +15,14 @@ beforeEach(() => {
 });
 
 describe('explicit Seerr source policies', () => {
+    it('selects the native video player regardless of plugin registration order', async () => {
+        const p = await policy();
+        const youtube = { isLocalPlayer: true, canPlayMediaType: () => true };
+        const native = { isLocalPlayer: true, prepareEmbedded: vi.fn() };
+        expect(p.nativeVideoPlayer([youtube, native])).toBe(native);
+        expect(p.nativeVideoPlayer([native, youtube])).toBe(native);
+        expect(p.nativeVideoPlayer([youtube])).toBeUndefined();
+    });
     it('does not modify browser APIs or ordinary/old-client playback', async () => {
         const fetch = window.fetch, open = XMLHttpRequest.prototype.open, descriptor = Object.getOwnPropertyDescriptor(HTMLMediaElement.prototype, 'src');
         const p = await policy(false);

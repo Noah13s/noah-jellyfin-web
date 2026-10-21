@@ -210,8 +210,9 @@ export function captureSource(sourceApi, sourceItem, result) {
         PositionTicks: sourceItem.UserData?.PlaybackPositionTicks || 0
     };
 }
-export function bindVideo(element) {
+export function bindVideo(element, owner) {
     if (!policy.local || video === element) return;
+    if (owner) player = owner;
     sourceCleanup();
     video = element;
     policy.setVideo(element);
@@ -276,7 +277,7 @@ export function enterEmbedded() {
     if (booting) return true;
     booting = (async () => {
         api = ServerConnections.currentApiClient();
-        player = manager.getPlayers().find(candidate => candidate.isLocalPlayer && candidate.canPlayMediaType('Video'));
+        player = policy.nativeVideoPlayer(manager.getPlayers());
         if (!api?.getCurrentUserId() || !player || !protocol) throw new Error('PLAYER_UNAVAILABLE');
         policy.beginBudget(api);
         disconnectThroughput = policy.observeThroughput(manager, player);
