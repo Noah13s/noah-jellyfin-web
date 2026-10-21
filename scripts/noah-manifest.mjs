@@ -13,5 +13,5 @@ function visit(directory) {
 }
 visit('dist');
 const commit = execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
-fs.writeFileSync('dist/noah-build.json', JSON.stringify({ version: 1, protocol: 1, upstream: '0e83c6a724b31f3e9b5a499244331a288c060a4a', commit, files }, null, 2) + '\n');
+fs.writeFileSync('dist/noah-build.json', JSON.stringify({ version: 1, protocol: 1, upstream: '61b1f890365ad15138e943e694af723c1d47df2a', commit, files }, null, 2) + '\n');
 console.log(`Manifest: ${Object.keys(files).length} assets, source ${commit}`);

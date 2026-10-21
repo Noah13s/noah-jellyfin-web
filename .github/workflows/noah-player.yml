@@ -21,7 +21,7 @@ jobs:
       - run: npm ci --allow-remote=all --no-audit --no-fund
       - run: node scripts/verify-noah-source.mjs
       - run: npm run build:check
-      - run: npx vitest run src/plugins/noah
+      - run: npx vitest run src/plugins/noah src/scripts/browser.test.ts src/utils/image.test.ts
       - run: npm run build:production
         env:
           NODE_OPTIONS: --max-old-space-size=4096
