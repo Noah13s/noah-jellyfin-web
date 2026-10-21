@@ -1,74 +1,48 @@
-<h1 align="center">Jellyfin Web</h1>
-<h3 align="center">Part of the <a href="https://jellyfin.org">Jellyfin Project</a></h3>
+# Noah Jellyfin Web
 
----
+The source-built **browser player for Noah Stream**, based on Jellyfin Web.
+Seerr provides browsing and watch history; this fork supplies Jellyfin playback
+inside Seerr through an explicit, versioned bridge.
 
-<p align="center">
-<img alt="Logo Banner" src="https://raw.githubusercontent.com/jellyfin/jellyfin-ux/master/branding/SVG/banner-logo-solid.svg?sanitize=true"/>
-<br/>
-<br/>
-<a href="https://github.com/jellyfin/jellyfin-web">
-<img alt="GPL 2.0 License" src="https://img.shields.io/github/license/jellyfin/jellyfin-web.svg"/>
-</a>
-<a href="https://github.com/jellyfin/jellyfin-web/releases">
-<img alt="Current Release" src="https://img.shields.io/github/release/jellyfin/jellyfin-web.svg"/>
-</a>
-<a href="https://translate.jellyfin.org/projects/jellyfin/jellyfin-web/?utm_source=widget">
-<img src="https://translate.jellyfin.org/widgets/jellyfin/-/jellyfin-web/svg-badge.svg" alt="Translation Status"/>
-</a>
-<br/>
-<a href="https://opencollective.com/jellyfin">
-<img alt="Donate" src="https://img.shields.io/opencollective/all/jellyfin.svg?label=backers"/>
-</a>
-<a href="https://features.jellyfin.org">
-<img alt="Feature Requests" src="https://img.shields.io/badge/fider-vote%20on%20features-success.svg"/>
-</a>
-<a href="https://matrix.to/#/+jellyfin:matrix.org">
-<img alt="Chat on Matrix" src="https://img.shields.io/matrix/jellyfin:matrix.org.svg?logo=matrix"/>
-</a>
-<a href="https://www.reddit.com/r/jellyfin">
-<img alt="Join our Subreddit" src="https://img.shields.io/badge/reddit-r%2Fjellyfin-%23FF5700.svg"/>
-</a>
-</p>
+| Component | Responsibility |
+| --- | --- |
+| [Noah Seerr](https://github.com/Noah13s/noah-seerr) | Catalog, requests, profiles, history, Cast controls and player host |
+| **This fork** | Browser media engine, capability decisions, subtitles and embedded lifecycle |
+| Noah Stream integration repository (private) | Native TV app, server integration and releases |
+| Jellyfin Server | Authorized library, PlaybackInfo, streaming and FFmpeg transcoding |
 
-Jellyfin Web is the frontend used for most of the clients available for end users, such as desktop browsers, Android, and iOS. We welcome all contributions and pull requests! If you have a larger feature in mind please open an issue so we can discuss the implementation before you start. Translations can be improved very easily from our <a href="https://translate.jellyfin.org/projects/jellyfin/jellyfin-web">Weblate</a> instance. Look through the following graphic to see if your native language could use some work!
+## Start here
 
-<a href="https://translate.jellyfin.org/engage/jellyfin/?utm_source=widget">
-<img src="https://translate.jellyfin.org/widgets/jellyfin/-/jellyfin-web/multi-auto.svg" alt="Detailed Translation Status"/>
-</a>
+| Goal | Guide |
+| --- | --- |
+| Understand the system and source hooks | [Architecture and bridge](docs/architecture.md) |
+| Run a local client | [Installation](docs/installation.md) |
+| Change, test and build the player | [Development](docs/development.md) |
+| Serve immutable assets and roll back | [Deployment](docs/deployment.md) |
+| Upgrade upstream or dependencies | [Updates](docs/updates.md) |
+| Diagnose playback or casting | [Troubleshooting](docs/troubleshooting.md) |
+| Browse all guides | [Documentation index](docs/README.md) |
 
-## Build Process
+## Release line
 
-### Dependencies
+This fork tracks **stable v12.2**. GitHub's fork banner compares `main` with
+upstream's development branch, `master`; its behind count does not indicate
+whether the stable tag is included. See [the update guide](docs/updates.md).
 
-- [Node.js](https://nodejs.org/en/download)
-- npm (included in Node.js)
+- Upstream pin: `61b1f890365ad15138e943e694af723c1d47df2a` (`v12.2`).
+- Toolchain: Node 24 and npm 11; dependencies are locked.
+- Browser streaming: HTML video and HLS.js 1.6.16, with the matching worker.
+- Validated integration: Jellyfin Server 12.0.0, bridge protocol 1.
+- Source102 checks covered Edge, Direct Play, HLS, resume and ASS subtitles.
+  Physical Safari, mobile and Cast receivers need separate verification.
 
-### Getting Started
+## Project boundaries and upstream
 
-1. Clone or download this repository.
+The separate native TV app uses media_kit/libmpv. Generated bundles are build
+outputs; custom behavior lives in source. See [NOAH.md](NOAH.md).
 
-   ```sh
-   git clone https://github.com/jellyfin/jellyfin-web.git
-   cd jellyfin-web
-   ```
-
-2. Install build dependencies in the project directory.
-
-   ```sh
-   npm install
-   ```
-
-3. Run the web client with webpack for local development.
-
-   ```sh
-   npm start
-   ```
-
-4. Build the client with sourcemaps available.
-
-   ```sh
-   npm run build:development
-   ```
-
-Review the [Contributing Guide](./CONTRIBUTING.md) for more information on our process and tech stack.
+[Jellyfin Web](https://github.com/jellyfin/jellyfin-web) is part of the
+[Jellyfin project](https://jellyfin.org). This fork retains its history and
+[GPL-2.0-or-later license](LICENSE). Read [CONTRIBUTING.md](CONTRIBUTING.md) and
+[support guidance](.github/SUPPORT.md) before proposing upstream changes.
+Report Noah-specific issues here with sanitized diagnostics.
