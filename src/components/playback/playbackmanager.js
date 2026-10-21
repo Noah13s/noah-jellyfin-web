@@ -9,6 +9,7 @@ import { getMediaInfoApi } from '@jellyfin/sdk/lib/utils/api/media-info-api';
 import merge from 'lodash-es/merge';
 import Screenfull from 'screenfull';
 
+import * as seerr from '../../plugins/noah/policy';
 import Events from '../../utils/events.ts';
 import datetime from '../../scripts/datetime';
 import appSettings from '../../scripts/settings/appSettings';
@@ -96,6 +97,7 @@ function reportPlayback(playbackManagerInstance, state, player, reportPlaylist, 
     }
 
     const apiClient = ServerConnections.getApiClient(serverId);
+    seerr.hooks.captureReport(apiClient, info);
     const reportPlaybackPromise = apiClient[method](info);
     // Notify that report has been sent
     reportPlaybackPromise.then(() => {
@@ -137,7 +139,7 @@ function getItemsForPlayback(serverId, query) {
     if (query.Ids && query.Ids.split(',').length === 1) {
         const itemId = query.Ids.split(',');
 
-        return apiClient.getItem(apiClient.getCurrentUserId(), itemId).then(function (item) {
+        return seerr.getItem(apiClient, apiClient.getCurrentUserId(), itemId).then(function (item) {
             return {
                 Items: [item],
                 TotalRecordCount: 1
@@ -501,8 +503,10 @@ async function getPlaybackInfo(player, apiClient, item, deviceProfile, mediaSour
 
     query.DeviceProfile = deviceProfile;
 
-    const res = await getMediaInfoApi(api).getPostedPlaybackInfo({ itemId: itemId, playbackInfoDto: query });
-    return res.data;
+    const request = async dto => (await getMediaInfoApi(api).getPostedPlaybackInfo({ itemId, playbackInfoDto: dto })).data;
+    const result = await (options.seerrPreparing && seerr.local ? seerr.prepareDecision : seerr.playbackInfo)(apiClient, item, query, request);
+    seerr.hooks.captureSource(apiClient, item, result);
+    return result;
 }
 
 function getOptimalMediaSource(apiClient, item, versions) {
@@ -1369,7 +1373,7 @@ export class PlaybackManager {
 
             const endpointInfo = apiClient.getSavedEndpointInfo() || {};
 
-            return appSettings.maxStreamingBitrate(endpointInfo.IsInNetwork, mediaType);
+            return seerr.savedBudget(apiClient, mediaType, appSettings.maxStreamingBitrate(endpointInfo.IsInNetwork, mediaType), appSettings.enableAutomaticBitrateDetection(endpointInfo.IsInNetwork, mediaType));
         }
 
         self.getMaxStreamingBitrate = function (player) {
@@ -1413,6 +1417,7 @@ export class PlaybackManager {
                 return player.setMaxStreamingBitrate(options);
             }
 
+            if (seerr.holdAutomaticChange(options, self.getMaxStreamingBitrate(player))) return;
             const api = ServerConnections.getApi(self.currentItem(player).ServerId);
             const apiClient = ServerConnections.getApiClient(self.currentItem(player).ServerId);
 
@@ -2678,7 +2683,7 @@ export class PlaybackManager {
 
             const apiClient = ServerConnections.getApiClient(item.ServerId);
             const isLiveTv = [BaseItemKind.TvChannel, BaseItemKind.LiveTvChannel].includes(item.Type);
-            const getSourceItem = isLiveTv ? Promise.resolve(null) : apiClient.getItem(apiClient.getCurrentUserId(), mediaSourceId || item.Id);
+            const getSourceItem = isLiveTv ? Promise.resolve(null) : seerr.getItem(apiClient, apiClient.getCurrentUserId(), mediaSourceId || item.Id);
 
             return Promise.all([promise, player.getDeviceProfile(item), apiClient.getCurrentUser(), getSourceItem]).then(function (responses) {
                 const deviceProfile = responses[1];
@@ -2835,6 +2840,7 @@ export class PlaybackManager {
                         maxBitrate,
                         startPosition,
                         isPlayback: true,
+                        seerrPreparing: options.seerrPreparing === true,
                         audioStreamIndex: null,
                         subtitleStreamIndex: null,
                         enableDirectPlay: null,
@@ -2927,7 +2933,7 @@ export class PlaybackManager {
             }
 
             const resultInfo = {
-                url: mediaUrl,
+                url: seerr.streamUrl(mediaUrl, startPosition || 0),
                 mimeType: contentType,
                 transcodingOffsetTicks: transcodingOffsetTicks,
                 playMethod: playMethod,
@@ -2992,7 +2998,7 @@ export class PlaybackManager {
 
             const getVersionItem = sourceItem?.Id === mediaSource.Id ?
                 Promise.resolve(sourceItem) :
-                apiClient.getItem(apiClient.getCurrentUserId(), mediaSource.Id).catch(() => null);
+                seerr.getItem(apiClient, apiClient.getCurrentUserId(), mediaSource.Id).catch(() => null);
 
             return getVersionItem.then(function (versionItem) {
                 if (!versionItem) {
@@ -3033,7 +3039,7 @@ export class PlaybackManager {
                                 });
                             } else {
                                 if (item.AlbumId != null) {
-                                    return apiClient.getItem(apiClient.getCurrentUserId(), item.AlbumId).then(function(result) {
+                                    return seerr.getItem(apiClient, apiClient.getCurrentUserId(), item.AlbumId).then(function(result) {
                                         mediaSource.albumNormalizationGain = result.NormalizationGain;
                                         return mediaSource;
                                     });
@@ -3827,7 +3833,7 @@ export class PlaybackManager {
 
         if (appHost.supports(AppFeature.RemoteControl)) {
             // Defer setup past module evaluation to avoid the circular dependency:
-            // playbackmanager → lib/jellyfin-apiclient → ServerConnections → utils/dashboard → backdrop → playbackmanager
+            // playbackmanager Ã¢â€ â€™ lib/jellyfin-apiclient Ã¢â€ â€™ ServerConnections Ã¢â€ â€™ utils/dashboard Ã¢â€ â€™ backdrop Ã¢â€ â€™ playbackmanager
             queueMicrotask(() => {
                 let _unsubscribeRemoteControl;
                 Events.on(ServerConnections, 'localusersignedin', () => {
@@ -3876,7 +3882,7 @@ export class PlaybackManager {
         }
 
         const apiClient = ServerConnections.getApiClient(nextItem.item.ServerId);
-        return apiClient.getItem(apiClient.getCurrentUserId(), nextItem.item.Id);
+        return seerr.getItem(apiClient, apiClient.getCurrentUserId(), nextItem.item.Id);
     }
 
     canQueue(item) {

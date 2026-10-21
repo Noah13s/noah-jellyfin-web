@@ -1,3 +1,4 @@
+import { local as seerrEmbedded, hooks as seerrHooks } from '../../plugins/noah/policy';
 import { CollectionType } from '@jellyfin/sdk/lib/generated-client/models/collection-type';
 
 import { setBackdropTransparency } from '../backdrop/backdrop';
@@ -56,6 +57,7 @@ class AppRouter {
     }
 
     async back() {
+        if (seerrEmbedded) { seerrHooks.close(); return; }
         if (this.promiseShow) await this.promiseShow;
 
         this.promiseShow = new Promise((resolve) => {
@@ -87,6 +89,10 @@ class AppRouter {
         }
 
         path = path.replace(this.baseUrl(), '');
+        if (seerrEmbedded && !/^\/(?:details|video)(?:\?|$)/.test(path)) {
+            seerrHooks.close();
+            return;
+        }
 
         // can't use this with home right now due to the back menu
         if (history.location.pathname === path && path !== '/home') {

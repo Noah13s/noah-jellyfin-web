@@ -1,0 +1,36 @@
+
+    .videoPlayerContainer .videoSubtitles {
+      top: auto !important; bottom: var(--seerr-subtitle-bottom, 4%) !important; left: 3% !important; right: 3% !important;
+      width: 94% !important; height: auto !important; background: transparent !important;
+      pointer-events: none; text-align: center !important;
+    }
+    .videoPlayerContainer .videoSubtitlesInner,
+    .videoPlayerContainer .videoSecondarySubtitlesInner {
+      margin: 0 !important; padding: 0 !important;
+      color: white !important; background: transparent !important;
+      font: 500 clamp(14px, calc(var(--seerr-video-height, 600px) * .045), 28px)/1.25 Arial, sans-serif !important;
+      text-shadow: -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000, 1px 1px 1px #000 !important;
+    }
+    /* Jellyfin retains the previous cue text but hides it at its end time. */
+    .videoPlayerContainer .videoSubtitlesInner:not(.hide),
+    .videoPlayerContainer .videoSecondarySubtitlesInner:not(.hide) {
+      display: block !important;
+    }
+    .videoPlayerContainer .videoSubtitlesInner.hide,
+    .videoPlayerContainer .videoSecondarySubtitlesInner.hide {
+      display: none !important;
+    }
+    .videoPlayerContainer .videoSubtitlesInner *,
+    .videoPlayerContainer .videoSecondarySubtitlesInner * {
+      font-size: inherit !important; line-height: inherit !important; color: inherit !important;
+      background: transparent !important; position: static !important;
+    }
+    video.htmlvideoplayer::cue {
+      font: 500 clamp(14px, calc(var(--seerr-video-height, 600px) * .045), 28px)/1.25 Arial, sans-serif !important;
+      color: white !important; background: transparent !important;
+      text-shadow: -1px -1px 1px #000, 1px -1px 1px #000, -1px 1px 1px #000, 1px 1px 1px #000 !important;
+    }
+  
+.noah-embedded-player { .headerCastButton, .headerSyncButton, #videoOsdPage .castButton, #videoOsdPage .btnUserRating { display: none !important; } }
+
+.noah-embedded-player .skinHeader { display: none !important; }

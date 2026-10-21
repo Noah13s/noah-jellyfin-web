@@ -39,6 +39,7 @@ import './components/themeMediaPlayer';
 import './scripts/autoThemes';
 import './scripts/mouseManager';
 import './scripts/screensavermanager';
+import { initializeSeerrIntegration } from './plugins/noah/embedded';
 
 // Import site styles
 import './styles/site.scss';
@@ -100,6 +101,7 @@ build: ${__JF_BUILD_VERSION__}`);
 
     // Load frontend plugins
     await loadPlugins();
+    initializeSeerrIntegration();
 
     // Register API request error handlers
     ServerConnections.getApiClients().forEach(apiClient => {

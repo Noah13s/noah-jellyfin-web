@@ -95,6 +95,7 @@ class CastPlayer {
      * receiverListener may be invoked at any time afterwards, and possibly more than once.
      */
     initializeCastPlayer() {
+        if (window.SeerrCastLifecycle?.skipInitialization(this)) return;
         const chrome = window.chrome;
         if (!chrome) {
             console.warn('Not initializing chromecast: chrome object is missing');
@@ -123,6 +124,7 @@ class CastPlayer {
                 this.receiverListener.bind(this));
 
             console.debug(`chromecast.initialize (applicationId=${applicationID})`);
+            window.SeerrCastLifecycle?.configure(apiConfig);
             chrome.cast.initialize(apiConfig, this.onInitSuccess.bind(this), this.errorHandler);
         });
     }
@@ -132,6 +134,7 @@ class CastPlayer {
      */
     onInitSuccess() {
         this.isInitialized = true;
+        window.SeerrCastLifecycle?.initialized();
         console.debug('[chromecastPlayer] init success');
     }
 

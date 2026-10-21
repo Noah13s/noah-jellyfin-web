@@ -1,3 +1,4 @@
+import { hooks as seerrHooks } from '../../../../plugins/noah/policy';
 import { BaseItemKind } from '@jellyfin/sdk/lib/generated-client/models/base-item-kind';
 import { ItemFields } from '@jellyfin/sdk/lib/generated-client/models/item-fields';
 import { PersonKind } from '@jellyfin/sdk/lib/generated-client/models/person-kind';
@@ -2122,6 +2123,7 @@ export default function (view, params) {
             refreshSelectedVersion();
         });
         view.addEventListener('viewshow', function (e) {
+            if (seerrHooks.enter()) return;
             const page = this;
 
             libraryMenu.setTransparentMenu(!layoutManager.mobile);
