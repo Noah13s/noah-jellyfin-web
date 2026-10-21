@@ -68,8 +68,8 @@ import { currentVideo } from './policy';
       badge.id = 'seerr-picture-brightness-feedback';
       badge.className = 'seerr-brightness-feedback';
       badge.setAttribute('aria-live', 'polite');
-      badge.innerHTML = '<span aria-hidden="true">Ã¢Ëœâ‚¬</span><span class="seerr-brightness-track"><span class="seerr-brightness-fill"></span></span><span class="seerr-brightness-value"></span>';
-      badge.setAttribute('aria-label', french ? 'LuminositÃƒÂ© de lÃ¢â‚¬â„¢image' : 'Picture brightness');
+      badge.innerHTML = '<span aria-hidden="true">&#9728;</span><span class="seerr-brightness-track"><span class="seerr-brightness-fill"></span></span><span class="seerr-brightness-value"></span>';
+      badge.setAttribute('aria-label', french ? 'Luminosit\u00e9 de l\u2019image' : 'Picture brightness');
       document.body.appendChild(badge);
     }
     return badge;
@@ -77,7 +77,15 @@ import { currentVideo } from './policy';
   const showSeek = (side, seconds) => {
     const badge = seekBadge();
     badge.className = `seerr-player-feedback is-${side} is-visible`;
-    badge.textContent = `${side === 'left' ? 'Ã¢â€ Â¶ Ã¢Ë†â€™' : 'Ã¢â€ Â· +'}${seconds}s`;
+    badge.textContent = `${side === 'left' ? '-' : '+'}${seconds}s`;
+    const icon = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    icon.setAttribute('viewBox', '0 0 24 24');
+    icon.setAttribute('aria-hidden', 'true');
+    icon.style.cssText = `width:1.1em;height:1.1em;vertical-align:-.18em;margin-right:.35em;fill:currentColor;${side === 'left' ? 'transform:rotate(180deg)' : ''}`;
+    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttribute('d', 'M3 5l9 7-9 7V5zm10 0l9 7-9 7V5z');
+    icon.appendChild(path);
+    badge.prepend(icon);
     clearTimeout(feedbackTimer);
     feedbackTimer = setTimeout(() => badge.classList.remove('is-visible'), 950);
   };

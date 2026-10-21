@@ -33,3 +33,6 @@ LICENSE         text
 .gitignore      export-ignore
 
 *.gitattributes linguist-language=gitattributes
+
+# Vendored worker has a verified byte-level checksum on every platform.
+src/assets/hls.worker-1.6.16.js -text
