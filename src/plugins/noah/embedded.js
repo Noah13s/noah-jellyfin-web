@@ -6,6 +6,7 @@ import { createProtocol } from './protocol';
 import * as policy from './policy';
 import { classifyFailure, PlaybackHealth } from './health';
 import { PlaybackTelemetry } from './telemetry';
+import { refreshPreparation } from './preparation';
 import './style.scss';
 // Existing Cast transport remains isolated in its persistent sender frame.
 import './casting';
@@ -29,6 +30,7 @@ let lastReportAt = 0;
 let startTimer;
 let watchdog;
 let disconnectThroughput;
+let cancelPreparation;
 let finalReport;
 let sourceCleanup = () => undefined;
 let recovering;
@@ -123,6 +125,7 @@ async function play(ticks) {
     if (opened || stopped) return;
     if (!Number.isSafeInteger(ticks) || ticks < 0 || ticks > 864000000000) ticks = prepared.resume;
     opened = true;
+    cancelPreparation?.();
     pausedIntent = false;
     playAt = performance.now();
     telemetry.record('playIntent');
@@ -227,6 +230,7 @@ function stop() {
     generation++;
     clearTimeout(startTimer);
     clearInterval(watchdog);
+    cancelPreparation?.();
     document.removeEventListener('visibilitychange', onVisibility);
     disconnectThroughput?.();
     sourceCleanup();
@@ -417,6 +421,11 @@ export function enterEmbedded() {
         })]);
         if (stopped) return;
         protocol.emit('prepared', snapshot());
+        cancelPreparation = refreshPreparation(() => manager.getPlaybackMediaSources(item, {
+            startPositionTicks: prepared.resume,
+            enableRemotePlayers: false,
+            seerrPreparing: true
+        }), () => !opened && !stopped && !Reflect.get(document, 'hidden'));
         document.addEventListener('visibilitychange', onVisibility);
         watchdog = setInterval(() => {
             if (!video) return;

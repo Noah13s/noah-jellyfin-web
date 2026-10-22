@@ -506,7 +506,9 @@ async function getPlaybackInfo(player, apiClient, item, deviceProfile, mediaSour
 
     const request = async dto => (await getMediaInfoApi(api).getPostedPlaybackInfo({ itemId, playbackInfoDto: dto })).data;
     const result = await (options.seerrPreparing && seerr.local ? seerr.prepareDecision : seerr.playbackInfo)(apiClient, item, query, request);
-    seerr.hooks.captureSource(apiClient, item, result);
+    // Optional renewal can finish after Play. It must never replace the active
+    // session report/encoder ownership captured by the actual playback request.
+    if (!options.seerrPreparing) seerr.hooks.captureSource(apiClient, item, result);
     return result;
 }
 
