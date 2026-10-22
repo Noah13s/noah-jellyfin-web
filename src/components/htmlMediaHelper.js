@@ -2,6 +2,7 @@ import appSettings from '../scripts/settings/appSettings' ;
 import browser from '../scripts/browser';
 import Events from '../utils/events.ts';
 import { MediaError } from 'types/mediaError';
+import * as seerr from '../plugins/noah/policy';
 
 export function getSavedVolume() {
     return appSettings.get('volume') || 1;
@@ -261,7 +262,12 @@ export function destroyFlvPlayer(instance) {
 
 export function bindEventsToHlsPlayer(instance, hls, elem, onErrorFn, resolve, reject) {
     hls.on(Hls.Events.MANIFEST_PARSED, function () {
-        playWithPromise(elem, onErrorFn).then(resolve, function () {
+        playWithPromise(elem, onErrorFn).then(() => {
+            resolve();
+            // After startup this promise is settled. Route later HLS failures
+            // through the manager instead of rejecting an already-resolved open.
+            if (seerr.local) reject = null;
+        }, function () {
             if (reject) {
                 reject();
                 reject = null;
@@ -270,6 +276,10 @@ export function bindEventsToHlsPlayer(instance, hls, elem, onErrorFn, resolve, r
     });
 
     hls.on(Hls.Events.ERROR, function (event, data) {
+        if (data.fatal || data.response?.code >= 400) {
+            seerr.hooks.noteFailure({ type: data.type, status: data.response?.code,
+                message: typeof data.response?.data === 'string' ? data.response.data.slice(0, 2048) : '' });
+        }
         console.error('HLS Error: Type: ' + data.type + ' Details: ' + (data.details || '') + ' Fatal: ' + (data.fatal || false));
 
         // try to recover network error

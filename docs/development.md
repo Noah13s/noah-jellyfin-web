@@ -21,7 +21,8 @@ node scripts/noah-manifest.mjs
 These match the custom [CI workflow](../.github/workflows/noah-player.yml).
 The manifest command requires Git: it writes the current commit, upstream pin
 and SHA-256 inventory to `dist/noah-build.json`. Build releases from clean,
-committed source; a commit field alone cannot prove the working tree was clean.
+committed source. A dirty/untracked checkout emits `candidate: true`, a null
+release commit and `baseCommit`; the production deployment gate rejects it.
 
 ## Change map
 
@@ -29,6 +30,7 @@ committed source; a commit field alone cannot prove the working tree was clean.
 | --- | --- | --- |
 | Capabilities, bitrate, preparation | `src/plugins/noah/policy.js` | Direct Play/HLS, fresh start and resume |
 | Lifecycle or recovery | `src/plugins/noah/embedded.js` | Cancel, exit/reopen, seek and network failure |
+| Failure classification and timing | [`playback-recovery.md`](playback-recovery.md), `health.js`, `telemetry.js` | Capacity/auth/subtitle isolation, frame versus clock evidence |
 | Host commands | `protocol.js` and Seerr's `playerBridge.ts` | Both endpoints, wrong-frame and late-reply tests |
 | Gestures | `src/plugins/noah/gestures.js` | One accumulated seek, direction and timeout |
 | Casting | `casting.js` and Seerr controls | Real receiver, sleep/wake and browser reopen |

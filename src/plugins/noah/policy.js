@@ -8,6 +8,11 @@ export const hooks = {
     bindVideo: () => undefined,
     captureReport: () => undefined,
     captureSource: () => undefined,
+    failure: () => false,
+    noteFailure: () => undefined,
+    metric: () => undefined,
+    pauseIntent: () => undefined,
+    seekIntent: () => undefined,
     enter: () => false,
     ticket: () => 0,
     current: () => true,
@@ -61,6 +66,7 @@ export function setCompatibility(value = true) {
     compatibility = value;
     decisions.clear();
 }
+export const compatibilityActive = () => compatibility;
 function estimate(api) {
     try {
         const saved = JSON.parse(sessionStorage.getItem(`seerr-stream-throughput:${keyFor(api)}`) || 'null');
@@ -119,6 +125,8 @@ export function observeThroughput(manager, player) {
             const bytes = entry.encodedBodySize || Math.max(0, entry.transferSize - 300);
             const elapsed = entry.responseEnd - entry.requestStart;
             const bodyMs = entry.responseEnd - entry.responseStart;
+            hooks.metric('segmentHeaders', { durationMs: entry.responseStart - entry.requestStart, bytes, status: entry.responseStatus });
+            hooks.metric('segmentBody', { durationMs: bodyMs, bytes, status: entry.responseStatus });
             if (!entry.transferSize || bytes < 32768 || elapsed < 20 || bodyMs < 20) continue;
             count++;
             rates.push(bytes * 8000 / elapsed);

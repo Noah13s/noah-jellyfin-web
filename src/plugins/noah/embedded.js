@@ -4,6 +4,8 @@ import { playbackManager as manager } from '../../components/playback/playbackma
 import { ServerConnections } from 'lib/jellyfin-apiclient';
 import { createProtocol } from './protocol';
 import * as policy from './policy';
+import { classifyFailure, PlaybackHealth } from './health';
+import { PlaybackTelemetry } from './telemetry';
 import './style.scss';
 // Existing Cast transport remains isolated in its persistent sender frame.
 import './casting';
@@ -19,9 +21,10 @@ let video;
 let stopped = false;
 let playing = false;
 let opened = false;
-let recovered = false;
+const health = new PlaybackHealth();
+const telemetry = new PlaybackTelemetry();
+let recentFailure;
 let lastPosition = 0;
-let lastAdvance = 0;
 let lastReportAt = 0;
 let startTimer;
 let watchdog;
@@ -30,6 +33,19 @@ let finalReport;
 let sourceCleanup = () => undefined;
 let recovering;
 let generation = 0;
+let changingUntil = 0;
+let buffering = false;
+let playAt;
+let presentationAt;
+let framePending = false;
+let healthFrameCallback;
+let pausedIntent = false;
+let pendingSeek;
+let presentedOnce = false;
+let recoveryAt;
+const onVisibility = () => {
+    presentationAt = performance.now();
+};
 const listeners = new Set();
 export const playbackGeneration = () => generation;
 export const generationActive = ticket => !policy.local || !stopped && ticket === generation;
@@ -61,18 +77,25 @@ const protocol = policy.local && /^[a-f0-9-]{16,80}$/i.test(frameId) ? createPro
     if (action === 'state') return snapshot();
     await booting;
     if (stopped) throw new Error('PLAYER_STOPPED');
+    if (recovering) await recovering;
+    if (stopped) throw new Error('PLAYER_STOPPED');
+    const commandAt = performance.now();
+    if (['seek', 'audio', 'subtitle'].includes(action)) changingUntil = commandAt + 12000;
     switch (action) {
         case 'play':
             await play(payload.resumeTicks);
             break;
         case 'pause':
+            pausedIntent = true;
             manager.pause(player);
             break;
         case 'resume':
+            pausedIntent = false;
             manager.unpause(player);
             break;
         case 'seek':
             if (!Number.isFinite(payload.position) || payload.position < 0 || payload.position > 86400) throw new Error('INVALID_POSITION');
+            pendingSeek = payload.position;
             manager.seek(payload.position * 10000000, player);
             break;
         case 'audio':
@@ -87,18 +110,22 @@ const protocol = policy.local && /^[a-f0-9-]{16,80}$/i.test(frameId) ? createPro
         default:
             throw new Error('INVALID_COMMAND');
     }
+    telemetry.record(`${action}Ack`, { durationMs: performance.now() - commandAt });
     return snapshot();
 }) : null;
 function armStartDeadline() {
     clearTimeout(startTimer);
     startTimer = setTimeout(() => {
-        if (!playing && !stopped) void recover();
-    }, recovered ? 45000 : 30000);
+        if (!playing && !stopped) void recover(recentFailure?.category || (buffering ? 'network' : 'unknown'));
+    }, 30000);
 }
 async function play(ticks) {
     if (opened || stopped) return;
     if (!Number.isSafeInteger(ticks) || ticks < 0 || ticks > 864000000000) ticks = prepared.resume;
     opened = true;
+    pausedIntent = false;
+    playAt = performance.now();
+    telemetry.record('playIntent');
     generation++;
     policy.beginBudget(api, true);
     const candidate = JSON.parse(prepared.item);
@@ -114,44 +141,70 @@ async function play(ticks) {
         enableRemotePlayers: false
     });
 }
-async function recover() {
+async function recover(category = 'unknown') {
     if (recovering) return recovering;
-    recovering = recoverOnce().finally(() => {
+    recovering = recoverOnce(category).catch(() => {
+        if (!stopped) {
+            telemetry.record('recoveryFailed', { category });
+            protocol?.emit('error', { ...snapshot(), code: 'PLAYBACK_FAILED' });
+            stop();
+        }
+    }).finally(() => {
         recovering = null;
     });
     return recovering;
 }
-async function recoverOnce() {
+async function recoverOnce(category) {
     if (stopped) return;
-    if (recovered) {
+    let mode = health.next(category, performance.now());
+    if (mode === 'compatibility' && policy.compatibilityActive()) mode = 'terminal';
+    telemetry.record('recovery', { category: `${category}_${mode}` });
+    if (mode === 'ignore') return;
+    if (mode === 'terminal') {
+        let code = 'PLAYBACK_FAILED';
+        if (category === 'capacity') code = 'PLAYBACK_CAPACITY';
+        if (category === 'authentication') code = 'PLAYBACK_AUTHENTICATION';
         protocol?.emit('error', {
             ...snapshot(),
-            code: 'PLAYBACK_FAILED'
+            code
         });
         stop();
         return;
     }
     const state = snapshot();
-    recovered = true;
-    generation++;
+    // Destroying a failed MSE source can reset paused/currentTime. Preserve the
+    // user's intent, including a seek that failed before producing its frame.
+    state.paused = pausedIntent;
+    state.position = pendingSeek ?? state.position;
+    const ticket = ++generation;
+    recoveryAt = performance.now();
+    const valid = () => generationActive(ticket);
+    const audio = manager.getAudioStreamIndex(player);
+    const subtitle = manager.getSubtitleStreamIndex(player);
     playing = false;
     protocol?.emit('recovering', state);
-    releaseEncoding();
-    await manager.stop(player);
-    if (stopped) return;
-    policy.setCompatibility();
-    const candidate = JSON.parse(prepared.item);
-    candidate.UserData = {
-        ...candidate.UserData,
-        PlaybackPositionTicks: Math.round(state.position * 10000000)
-    };
-    policy.rememberItem(api, candidate);
     armStartDeadline();
-    await manager.play({
-        items: [candidate],
-        startPositionTicks: candidate.UserData.PlaybackPositionTicks,
-        enableRemotePlayers: false
-    });
+    if (mode === 'same') {
+        try {
+            if (await manager.recoverEmbeddedStream(player, Math.round(state.position * 10000000), valid)) {
+                if (valid() && state.paused) manager.pause(player);
+                return;
+            }
+        } catch (error) {
+            const failed = classifyFailure({ type: error?.name, status: error?.status, message: error?.message });
+            if (!valid() || category !== 'decoder' || !['decoder', 'unknown'].includes(failed)
+                || policy.compatibilityActive() || !health.allowCompatibility()) throw error;
+            mode = 'compatibility';
+            telemetry.record('recovery', { category: 'decoder_compatibility' });
+        }
+    }
+    if (!valid()) return;
+    if (mode === 'compatibility') policy.setCompatibility();
+    armStartDeadline();
+    const replaced = await manager.renegotiateEmbeddedStream(player, Math.round(state.position * 10000000), valid,
+        { audio, subtitle, compatibility: mode === 'compatibility' });
+    if (valid() && !replaced) throw new Error('PLAYBACK_REPLACEMENT_FAILED');
+    if (valid() && state.paused) manager.pause(player);
 }
 function releaseEncoding() {
     if (!api || !finalReport?.PlaySessionId) return;
@@ -170,9 +223,11 @@ function releaseEncoding() {
 function stop() {
     if (stopped) return;
     stopped = true;
+    telemetry.record('stop');
     generation++;
     clearTimeout(startTimer);
     clearInterval(watchdog);
+    document.removeEventListener('visibilitychange', onVisibility);
     disconnectThroughput?.();
     sourceCleanup();
     if (api && finalReport) {
@@ -211,7 +266,7 @@ export function captureSource(sourceApi, sourceItem, result) {
     };
 }
 export function bindVideo(element, owner) {
-    if (!policy.local || video === element) return;
+    if (!policy.local) return;
     if (owner) player = owner;
     sourceCleanup();
     video = element;
@@ -226,11 +281,15 @@ export function bindVideo(element, owner) {
     observer.observe(element);
     element.addEventListener('loadedmetadata', resize);
     let frameSource = '';
+    const sourceOpenedAt = performance.now();
+    let frameCallback;
+    let waitingAt;
+    let seekAt;
     const update = () => {
         if (stopped) return;
         const state = snapshot();
-        if (Math.abs(state.position - lastPosition) > 0.15 && !video.seeking) lastAdvance = performance.now();
         lastPosition = state.position;
+        if (!recovering && pendingSeek !== undefined && !element.seeking && element.readyState >= 2 && Math.abs(state.position - pendingSeek) < 2) pendingSeek = undefined;
         if (performance.now() - lastReportAt > 1000) {
             lastReportAt = performance.now();
             protocol?.emit('position', state);
@@ -239,8 +298,13 @@ export function bindVideo(element, owner) {
     const onPlaying = () => {
         if (stopped) return;
         policy.videoPlaying(video);
-        lastAdvance = performance.now();
-        if (frameSource === video.currentSrc) return;
+        buffering = false;
+        // Allow a fresh presentation deadline after pause/background/source
+        // transitions; this timestamp is not emitted as frame evidence.
+        presentationAt = performance.now();
+        if (waitingAt !== undefined) telemetry.record('buffering', { durationMs: performance.now() - waitingAt });
+        waitingAt = undefined;
+        if (frameSource === video.currentSrc && playing) return;
         frameSource = video.currentSrc;
         const ticket = generation;
         const presented = () => {
@@ -248,22 +312,73 @@ export function bindVideo(element, owner) {
             playing = true;
             clearTimeout(startTimer);
             protocol?.emit('firstFrame', snapshot());
+            presentationAt = performance.now();
+            if (pendingSeek !== undefined && Math.abs(snapshot().position - pendingSeek) < 2) pendingSeek = undefined;
+            let phase = video.requestVideoFrameCallback ? 'presentedFrame' : 'playingEvent';
+            if (presentedOnce) phase = video.requestVideoFrameCallback ? 'replacementFrame' : 'replacementPlaying';
+            const since = presentedOnce ? recoveryAt ?? sourceOpenedAt : playAt ?? telemetry.started;
+            telemetry.record(phase, { durationMs: performance.now() - since });
+            presentedOnce = true;
+            recoveryAt = undefined;
         };
         if (video.requestVideoFrameCallback) {
-            video.requestVideoFrameCallback(presented);
+            frameCallback = video.requestVideoFrameCallback(presented);
         } else {
             presented();
         }
     };
-    const onState = () => protocol?.emit('state', snapshot());
+    const onWaiting = () => {
+        if (!element.paused && !element.seeking) {
+            buffering = true;
+            waitingAt ??= performance.now();
+        }
+    };
+    const onSeeking = () => {
+        seekAt = performance.now();
+        changingUntil = seekAt + 12000;
+    };
+    const onSeeked = () => {
+        changingUntil = 0;
+        const startedAt = seekAt;
+        seekAt = undefined;
+        if (startedAt === undefined) return;
+        telemetry.record('seekSettled', { durationMs: performance.now() - startedAt });
+        // A paused seek may not present a new frame until resume. Record only
+        // when the browser actually gives presentation evidence.
+        if (element.requestVideoFrameCallback && !element.paused) {
+            const ticket = generation;
+            frameCallback = element.requestVideoFrameCallback(() => {
+                if (generationActive(ticket)) telemetry.record('seekFrame', { durationMs: performance.now() - startedAt });
+            });
+        }
+    };
+    const onEmptied = () => {
+        frameSource = '';
+    };
+    const onState = () => {
+        if (!recovering && !element.seeking && element.readyState >= 2) pausedIntent = element.paused;
+        protocol?.emit('state', snapshot());
+    };
     video.addEventListener('timeupdate', update);
     video.addEventListener('playing', onPlaying);
+    video.addEventListener('waiting', onWaiting);
+    video.addEventListener('seeking', onSeeking);
+    video.addEventListener('seeked', onSeeked);
+    video.addEventListener('emptied', onEmptied);
     for (const event of ['pause', 'seeked', 'ended']) video.addEventListener(event, onState);
     sourceCleanup = () => {
         observer.disconnect();
         element.removeEventListener('loadedmetadata', resize);
         element.removeEventListener('timeupdate', update);
         element.removeEventListener('playing', onPlaying);
+        element.removeEventListener('waiting', onWaiting);
+        element.removeEventListener('seeking', onSeeking);
+        element.removeEventListener('seeked', onSeeked);
+        element.removeEventListener('emptied', onEmptied);
+        if (frameCallback !== undefined) element.cancelVideoFrameCallback?.(frameCallback);
+        if (healthFrameCallback !== undefined) element.cancelVideoFrameCallback?.(healthFrameCallback);
+        healthFrameCallback = undefined;
+        framePending = false;
         for (const event of ['pause', 'seeked', 'ended']) element.removeEventListener(event, onState);
     };
     for (const listener of listeners) listener(element);
@@ -302,17 +417,38 @@ export function enterEmbedded() {
         })]);
         if (stopped) return;
         protocol.emit('prepared', snapshot());
+        document.addEventListener('visibilitychange', onVisibility);
         watchdog = setInterval(() => {
-            if (!playing || stopped || !video || video.paused || video.ended || document.hidden || video.seeking) {
-                lastAdvance = performance.now();
-                return;
+            if (!video) return;
+            let bufferedAhead = 0;
+            for (let i = 0; i < video.buffered.length; i++) {
+                if (video.buffered.start(i) <= video.currentTime && video.buffered.end(i) >= video.currentTime) bufferedAhead = video.buffered.end(i) - video.currentTime;
             }
-            if (performance.now() - lastAdvance > 12000) {
-                lastAdvance = performance.now();
-                void recover();
+            const visible = !('hidden' in document) || !Reflect.get(document, 'hidden');
+            const active = playing && !stopped && !recovering && visible && performance.now() >= changingUntil;
+            // At most one pending presentation callback. Sample at watchdog
+            // cadence, not every decoded frame; hidden/paused video is excluded.
+            if (active && !video.paused && !video.seeking && video.requestVideoFrameCallback && !framePending) {
+                framePending = true;
+                const ticket = generation;
+                healthFrameCallback = video.requestVideoFrameCallback(() => {
+                    framePending = false;
+                    healthFrameCallback = undefined;
+                    if (generationActive(ticket)) presentationAt = performance.now();
+                });
+            }
+            const fault = health.sample({ now: performance.now(), position: video.currentTime,
+                active,
+                paused: video.paused, seeking: video.seeking, ended: video.ended,
+                buffering, bufferedAhead, presentationAt: video.requestVideoFrameCallback ? presentationAt : undefined });
+            if (fault) {
+                const category = recentFailure && performance.now() - recentFailure.at < 15000 ? recentFailure.category : fault;
+                recentFailure = null;
+                void recover(category);
             }
         }, 500);
-    })().catch(() => {
+    })().catch(error => {
+        telemetry.record('preparationFailed', { category: classifyFailure({ message: error?.message }) });
         protocol?.emit('error', {
             code: 'PLAYER_PREPARATION_FAILED'
         });
@@ -326,6 +462,7 @@ if (policy.local) {
     document.documentElement.classList.add('noah-embedded-player');
     // Read-only compatibility for the existing party coordinator during migration.
     window.__seerrPlaybackSnapshot = snapshot;
+    window.__seerrPlaybackMetrics = () => telemetry.snapshot();
 }
 Events.on(manager, 'playbackstop', () => {
     if (policy.local && !stopped) protocol?.emit('position', snapshot());
@@ -334,6 +471,21 @@ Object.assign(policy.hooks, {
     bindVideo,
     captureReport,
     captureSource,
+    noteFailure: error => { recentFailure = { category: classifyFailure(error), at: performance.now() }; },
+    failure: (error, owner) => {
+        if (!policy.local || stopped || owner !== player) return false;
+        const category = recentFailure && performance.now() - recentFailure.at < 15000 ? recentFailure.category : classifyFailure(error);
+        recentFailure = null;
+        void recover(category);
+        return true;
+    },
+    metric: (phase, values) => { if (policy.local) telemetry.record(phase, values); },
+    pauseIntent: (owner, value) => {
+        if (policy.local && owner === player && !stopped) pausedIntent = value;
+    },
+    seekIntent: (owner, ticks) => {
+        if (policy.local && owner === player && !stopped) pendingSeek = ticks / 10000000;
+    },
     enter: enterEmbedded,
     ticket: playbackGeneration,
     current: generationActive,

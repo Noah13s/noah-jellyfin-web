@@ -8,6 +8,7 @@
 4. [Deployment](deployment.md): immutable assets, release gates and rollback.
 5. [Updates](updates.md): stable merges and HLS worker integrity.
 6. [Troubleshooting](troubleshooting.md): symptoms, evidence and device limits.
+7. [Playback recovery and measurements](playback-recovery.md): classified errors, encoder handoff and frame evidence.
 
 ## Authoritative records
 
