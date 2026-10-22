@@ -29,6 +29,8 @@ release commit and `baseCommit`; the production deployment gate rejects it.
 | Change | Start here | Verify |
 | --- | --- | --- |
 | Capabilities, bitrate, preparation | `src/plugins/noah/policy.js` | Direct Play/HLS, fresh start and resume |
+| Passive transfer samples and selected-page renewal | `throughput.js`, `preparation.js` | Server wait versus body transfer, cache rejection, expiry, visibility and late cancellation |
+| Text cue index and redraws | `subtitles.js` and HTML player call sites | Silence, overlaps, backward seek, subtitle offset and track replacement |
 | Lifecycle or recovery | `src/plugins/noah/embedded.js` | Cancel, exit/reopen, seek and network failure |
 | Failure classification and timing | [`playback-recovery.md`](playback-recovery.md), `health.js`, `telemetry.js` | Capacity/auth/subtitle isolation, frame versus clock evidence |
 | Host commands | `protocol.js` and Seerr's `playerBridge.ts` | Both endpoints, wrong-frame and late-reply tests |

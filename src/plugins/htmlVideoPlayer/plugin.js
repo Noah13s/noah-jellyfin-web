@@ -5,6 +5,7 @@ import Screenfull from 'screenfull';
 
 import { useCustomSubtitles } from 'apps/legacy/features/playback/utils/subtitleStyles';
 import subtitleAppearanceHelper from 'components/subtitlesettings/subtitleappearancehelper';
+import { invalidateSubtitleIndex, subtitleEventAt, renderSubtitle } from '../noah/subtitles';
 import { AppFeature } from 'constants/appFeature';
 import { PluginType } from 'constants/pluginType';
 import { ServerConnections } from 'lib/jellyfin-apiclient';
@@ -857,6 +858,7 @@ export class HtmlVideoPlayer {
                 trackEvent.StartPositionTicks -= offsetValue;
                 trackEvent.EndPositionTicks -= offsetValue;
             });
+            if (seerr.local) invalidateSubtitleIndex(trackEvents);
         }
     }
 
@@ -1733,6 +1735,11 @@ export class HtmlVideoPlayer {
 
             if (trackEvents && subtitleTextElement) {
                 const ticks = timeMs * 10000;
+                if (seerr.local) {
+                    renderSubtitle(subtitleTextElement, subtitleEventAt(trackEvents, ticks),
+                        text => DOMPurify.sanitize(normalizeTrackEventText(text, true)));
+                    continue;
+                }
                 let selectedTrackEvent;
                 for (const trackEvent of trackEvents) {
                     if (trackEvent.StartPositionTicks <= ticks && trackEvent.EndPositionTicks >= ticks) {

@@ -4,7 +4,7 @@ import crypto from 'node:crypto';
 import { MINIMUM_VERSION } from '@jellyfin/sdk/lib/versions.js';
 import { compareVersions } from '@jellyfin/sdk/lib/utils/versioning.js';
 
-for (const file of ['policy.js', 'embedded.js', 'protocol.js', 'health.js', 'telemetry.js', 'handoff.js']) {
+for (const file of ['policy.js', 'embedded.js', 'protocol.js', 'health.js', 'telemetry.js', 'handoff.js', 'throughput.js', 'preparation.js', 'subtitles.js']) {
     const source = fs.readFileSync(`src/plugins/noah/${file}`, 'utf8');
     assert.doesNotMatch(source, /(?:window\.)?fetch\s*=|XMLHttpRequest\.prototype|HTMLMediaElement\.prototype|Element\.prototype/, `Global browser interception in ${file}`);
     assert.doesNotMatch(source, /api\.getItem\s*=|playbackManager\.setMaxStreamingBitrate\s*=/, `SDK method interception in ${file}`);

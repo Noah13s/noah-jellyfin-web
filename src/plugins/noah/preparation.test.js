@@ -1,0 +1,26 @@
+import { afterEach, expect, it, vi } from 'vitest';
+import { refreshPreparation } from './preparation';
+afterEach(() => vi.useRealTimers());
+it('refreshes selected visible metadata serially, stops on Play and never warms forever', async () => {
+    vi.useFakeTimers();
+    let active = true, finish;
+    const refresh = vi.fn().mockImplementationOnce(() => new Promise(resolve => { finish = resolve; })).mockResolvedValue();
+    const cancel = refreshPreparation(refresh, () => active);
+    await vi.advanceTimersByTimeAsync(15000);
+    await vi.advanceTimersByTimeAsync(15000);
+    expect(refresh).toHaveBeenCalledTimes(1);
+    finish(); await Promise.resolve();
+    active = false;
+    await vi.advanceTimersByTimeAsync(15000);
+    expect(refresh).toHaveBeenCalledTimes(1);
+    active = true;
+    await vi.advanceTimersByTimeAsync(15000);
+    expect(refresh).toHaveBeenCalledTimes(2);
+    cancel();
+    await vi.advanceTimersByTimeAsync(150000);
+    expect(refresh).toHaveBeenCalledTimes(2);
+    const bounded = vi.fn().mockResolvedValue();
+    refreshPreparation(bounded, () => true);
+    await vi.advanceTimersByTimeAsync(300000);
+    expect(bounded).toHaveBeenCalledTimes(7);
+});

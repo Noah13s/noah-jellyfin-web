@@ -1,4 +1,5 @@
 /** Seerr playback policy. Called explicitly by the native player/manager. */
+import { mediaTransfer, retainedBudget } from './throughput';
 const parameters = new URLSearchParams(window.location.search);
 export const embedded = window.parent !== window && parameters.get('seerrAutoplay') === '1';
 export const castFrame = window.parent !== window && parameters.get('seerrCast') === '1';
@@ -41,6 +42,12 @@ const decisions = new Map();
 const readySources = new Map();
 const hints = new Map();
 const stable = value => JSON.stringify(value, (_key, entry) => entry && typeof entry === 'object' && !Array.isArray(entry) ? Object.fromEntries(Object.keys(entry).sort((a, b) => a.localeCompare(b)).map(key => [key, entry[key]])) : entry);
+const decisionKey = query => {
+    const identity = { ...query };
+    delete identity.IsPlayback;
+    delete identity.AutoOpenLiveStream;
+    return stable(identity);
+};
 let apiForBudget;
 let initialBudget;
 let budgetKey;
@@ -70,9 +77,7 @@ export const compatibilityActive = () => compatibility;
 function estimate(api) {
     try {
         const saved = JSON.parse(sessionStorage.getItem(`seerr-stream-throughput:${keyFor(api)}`) || 'null');
-        if (saved?.source === 'video' && now() >= saved.at && now() - saved.at < 1800000 && saved.bps > 0) {
-            return Math.min(12000000, Math.max(256000, Math.round(saved.bps * 0.7)));
-        }
+        return retainedBudget(saved, now());
     } catch { /* Use the conservative existing policy. */ }
     return 4000000;
 }
@@ -115,35 +120,31 @@ export function observeThroughput(manager, player) {
     // eslint-disable-next-line compat/compat -- Optional observer is guarded above; native HLS may omit it.
     const observer = new window.PerformanceObserver(list => {
         for (const entry of list.getEntries()) {
-            let url;
-            try {
-                url = new URL(entry.name);
-            } catch {
-                continue;
-            }
-            if (!apiForBudget || url.origin !== window.location.origin || !/\/videos\/[^/]+\/(?:hls1\/[^/]+\/\d+\.(?:mp4|ts)|[^/]+\.ts)$/i.test(url.pathname)) continue;
-            const bytes = entry.encodedBodySize || Math.max(0, entry.transferSize - 300);
-            const elapsed = entry.responseEnd - entry.requestStart;
-            const bodyMs = entry.responseEnd - entry.responseStart;
-            hooks.metric('segmentHeaders', { durationMs: entry.responseStart - entry.requestStart, bytes, status: entry.responseStatus });
-            hooks.metric('segmentBody', { durationMs: bodyMs, bytes, status: entry.responseStatus });
-            if (!entry.transferSize || bytes < 32768 || elapsed < 20 || bodyMs < 20) continue;
+            const sample = apiForBudget && mediaTransfer(entry, window.location.origin, targetId);
+            if (!sample) continue;
+            const { bytes, bodyMs, waitMs, bps, deliveryBps, kind } = sample;
+            hooks.metric(`${kind}Headers`, { durationMs: waitMs, bytes, status: entry.responseStatus });
+            hooks.metric(`${kind}Body`, { durationMs: bodyMs, bytes, status: entry.responseStatus });
             count++;
-            rates.push(bytes * 8000 / elapsed);
+            rates.push(bps);
             if (rates.length > 6) rates.shift();
             const sorted = [...rates].sort((a, b) => a - b);
             try {
-                sessionStorage.setItem(`seerr-stream-throughput:${keyFor(apiForBudget)}`, JSON.stringify({
-                    at: now(),
-                    source: 'video',
-                    bps: sorted[Math.floor((sorted.length - 1) / 2)]
-                }));
+                if (rates.length >= 3) {
+                    sessionStorage.setItem(`seerr-stream-throughput:${keyFor(apiForBudget)}`, JSON.stringify({
+                        at: now(),
+                        source: 'video-body-v2',
+                        count: rates.length,
+                        bps: sorted[Math.floor((sorted.length - 1) / 2)]
+                    }));
+                }
             } catch { /* Optional. */ }
             diagnostics.samples.push({
-                path: url.pathname,
+                kind,
                 bytes,
-                ttfbMs: Math.round(entry.responseStart - entry.requestStart),
-                bodyMs: Math.round(bodyMs)
+                ttfbMs: Math.round(waitMs),
+                bodyMs: Math.round(bodyMs),
+                deliveryBps: Math.round(deliveryBps)
             });
             if (diagnostics.samples.length > 30) diagnostics.samples.shift();
             if (!automatic || locked() || rates.length < 4 || performance.now() - lastAdaptation < 45000 || !activeVideo || activeVideo.paused || activeVideo.seeking || manager.playMethod(player) !== 'Transcode') continue;
@@ -213,12 +214,19 @@ export function normalizeMedia(data) {
 }
 export function normalizeSubtitle(data) {
     if (!local) return data;
+    const at = performance.now();
+    let template;
     for (const event of data.TrackEvents || []) {
         if (typeof event.Text !== 'string') continue;
-        const template = document.createElement('template');
+        if (!/[<&>]/.test(event.Text)) {
+            event.Text = event.Text.replace(/\n/g, '<br>');
+            continue;
+        }
+        template ||= document.createElement('template');
         template.innerHTML = event.Text.replace(/<br\s*\/?>/gi, '\n');
         event.Text = (template.content.textContent || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
     }
+    hooks.metric('subtitleNormalize', { durationMs: performance.now() - at });
     return data;
 }
 export function rememberItem(api, item) {
@@ -231,7 +239,7 @@ export function rememberItem(api, item) {
 }
 export async function getItem(api, user, id) {
     const cached = local && items.get(`${keyFor(api)}:${id}`);
-    if (cached && now() - cached.at < 20000 && user === api.getCurrentUserId()) return JSON.parse(cached.value);
+    if (cached && now() - cached.at < 120000 && user === api.getCurrentUserId()) return JSON.parse(cached.value);
     return normalizeMedia(await api.getItem(user, id));
 }
 export function adaptRequest(query) {
@@ -290,7 +298,7 @@ export function adaptRequest(query) {
 export async function playbackInfo(api, item, query, request) {
     if (!local) return request(query);
     const adapted = adaptRequest(query);
-    const key = `${keyFor(api)}:${item.Id}:${stable(adapted)}`;
+    const key = `${keyFor(api)}:${item.Id}:${decisionKey(adapted)}`;
     const cached = decisions.get(key);
     if (cached && now() - cached.at < 20000 && !cached.value.MediaSources.some(source => source.RequiresOpening)) {
         decisions.delete(key);
@@ -299,10 +307,12 @@ export async function playbackInfo(api, item, query, request) {
     return normalizeMedia(await request(adapted));
 }
 export async function prepareDecision(api, item, query, request) {
+    const ticket = hooks.ticket();
     const adapted = adaptRequest(query);
-    const value = normalizeMedia(await request(adapted));
-    if (value.MediaSources?.length && !value.MediaSources.some(source => source.RequiresOpening)) {
-        decisions.set(`${keyFor(api)}:${item.Id}:${stable(adapted)}`, {
+    const value = normalizeMedia(await request({ ...adapted, IsPlayback: false, AutoOpenLiveStream: false }));
+    if (hooks.current(ticket) && value.MediaSources?.length && !value.MediaSources.some(source => source.RequiresOpening)) {
+        if (decisions.size >= 4) decisions.delete(decisions.keys().next().value);
+        decisions.set(`${keyFor(api)}:${item.Id}:${decisionKey(adapted)}`, {
             at: now(),
             value: clone(value)
         });

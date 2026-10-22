@@ -40,8 +40,25 @@ describe('explicit Seerr source policies', () => {
         const item = { Id: id }, query = { StartTimeTicks: 90000000, IsPlayback: true, DeviceProfile: { TranscodingProfiles: [] } };
         const request = vi.fn().mockResolvedValue({ PlaySessionId: 'session', MediaSources: [{ Id: id }] });
         await p.prepareDecision(api, item, query, request);
+        expect(request.mock.calls[0][0]).toMatchObject({ IsPlayback: false, AutoOpenLiveStream: false });
         await p.playbackInfo(api, item, query, request);
         expect(request).toHaveBeenCalledTimes(1);
+        await p.playbackInfo(api, item, query, request);
+        expect(request).toHaveBeenCalledTimes(2);
+    });
+
+    it('discards a late prepared decision after Play or exit changes its generation', async () => {
+        const p = await policy();
+        let ticket = 1, finish;
+        p.hooks.ticket = () => ticket;
+        p.hooks.current = captured => captured === ticket;
+        const request = vi.fn().mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }))
+            .mockResolvedValue({ MediaSources: [{ Id: id }] });
+        const item = { Id: id }, query = { DeviceProfile: {} };
+        const pending = p.prepareDecision(api, item, query, request);
+        ticket++;
+        finish({ MediaSources: [{ Id: id }] });
+        await pending;
         await p.playbackInfo(api, item, query, request);
         expect(request).toHaveBeenCalledTimes(2);
     });
@@ -82,6 +99,33 @@ describe('explicit Seerr source policies', () => {
         expect(query.MaxStreamingBitrate).toBe(12000000);
         expect(p.holdAutomaticChange({ enableAutomaticBitrateDetection: true }, 12000000)).toBe(true);
         expect(p.holdAutomaticChange({ maxBitrate: 8000000 }, 12000000)).toBe(false);
+    });
+
+    it('retains real body throughput for the next launch without reconsidering the current encoder', async () => {
+        const p = await policy();
+        let observe;
+        const disconnect = vi.fn();
+        const OriginalObserver = window.PerformanceObserver;
+        window.PerformanceObserver = class {
+            constructor(callback) { observe = callback; }
+            observe() { /* passive */ }
+            disconnect = disconnect;
+        };
+        try {
+            p.beginBudget(api);
+            const manager = { setMaxStreamingBitrate: vi.fn() };
+            const close = p.observeThroughput(manager, {});
+            const entry = { name: `${window.location.origin}/player/Videos/${id}/hls1/main/1.mp4`,
+                encodedBodySize: 2000000, transferSize: 2000400, requestStart: 1, responseStart: 3001, responseEnd: 3251, responseStatus: 200 };
+            observe({ getEntries: () => [entry, entry, entry, entry] });
+            p.beginBudget(api, true);
+            expect(await p.detectBudget(api, vi.fn())).toBe(4000000);
+            expect(manager.setMaxStreamingBitrate).not.toHaveBeenCalled();
+            p.beginBudget(api);
+            expect(await p.detectBudget(api, vi.fn())).toBe(44800000);
+            close();
+            expect(disconnect).toHaveBeenCalledOnce();
+        } finally { window.PerformanceObserver = OriginalObserver; }
     });
 
     it('maps ASS dialogue through text conversion without changing bitmap burn-in', async () => {
