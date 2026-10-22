@@ -1,3 +1,4 @@
+import { replaceOwnedStream } from '../../plugins/noah/handoff';
 import { BaseItemKind } from '@jellyfin/sdk/lib/generated-client/models/base-item-kind';
 import { ItemFields } from '@jellyfin/sdk/lib/generated-client/models/item-fields';
 import { ItemFilter } from '@jellyfin/sdk/lib/generated-client/models/item-filter';
@@ -1670,6 +1671,7 @@ export class PlaybackManager {
             ticks = Math.max(0, ticks);
 
             player = player || self._currentPlayer;
+            seerr.hooks.seekIntent(player, ticks);
             if (player && !enableLocalPlaylistManagement(player)) {
                 return player.seek(ticks);
             }
@@ -1713,6 +1715,83 @@ export class PlaybackManager {
 
             return player.duration();
         }
+
+        // Embedded recovery keeps the current session, URL, quality and selected
+        // tracks. It does not negotiate or stop the active server encoder.
+        self.recoverEmbeddedStream = async function (player, ticks, valid) {
+            if (!seerr.local || !valid()) return false;
+            const data = getPlayerData(player);
+            const current = data.streamInfo;
+            // A timestamp-shifted progressive conversion needs fresh metadata.
+            if (!current?.url || current.transcodingOffsetTicks || data.isChangingStream) return false;
+            const streamInfo = {
+                ...current,
+                playerStartPositionTicks: ticks,
+                resetSubtitleOffset: false,
+                mediaSource: { ...current.mediaSource,
+                    DefaultAudioStreamIndex: data.audioStreamIndex,
+                    DefaultSubtitleStreamIndex: data.subtitleStreamIndex,
+                    DefaultSecondarySubtitleStreamIndex: data.secondarySubtitleStreamIndex }
+            };
+            data.isChangingStream = true;
+            try {
+                await player.play(streamInfo);
+                if (!valid()) return false;
+                data.streamInfo = streamInfo;
+                return true;
+            } finally {
+                data.isChangingStream = false;
+            }
+        };
+
+        // Replace a lost manifest/unsupported decoder inside the existing player.
+        // manager.stop() is a user exit: its playbackstop handlers navigate away.
+        self.renegotiateEmbeddedStream = async function (player, ticks, valid, selection) {
+            if (!seerr.local || !valid()) return false;
+            const data = getPlayerData(player);
+            const previous = data.streamInfo;
+            const currentItem = self.currentItem(player);
+            if (!previous || !currentItem || data.isChangingStream) return false;
+            const apiClient = ServerConnections.getApiClient(currentItem.ServerId);
+            const profile = await player.getDeviceProfile(currentItem, { isRetry: selection.compatibility });
+            if (!valid()) return false;
+            const result = await getPlaybackInfo(player, apiClient, currentItem, profile,
+                previous.mediaSource.Id, previous.liveStreamId, {
+                    maxBitrate: self.getMaxStreamingBitrate(player), startPosition: ticks, isPlayback: true,
+                    audioStreamIndex: selection.audio, subtitleStreamIndex: selection.subtitle,
+                    enableDirectPlay: selection.compatibility ? false : undefined,
+                    enableDirectStream: selection.compatibility ? false : undefined
+                });
+            if (!valid()) return false;
+            if (!result.MediaSources?.length) throw new Error('PLAYBACK_DECISION_FAILED');
+            const streamInfo = createStreamInfo(apiClient, currentItem.MediaType, currentItem, result.MediaSources[0], ticks, player);
+            if (!streamInfo.url) throw new Error('PLAYBACK_DECISION_FAILED');
+            streamInfo.resetSubtitleOffset = false;
+            data.isChangingStream = true;
+            data.audioStreamIndex = selection.audio;
+            data.subtitleStreamIndex = selection.subtitle;
+            data.streamInfo = streamInfo;
+            try {
+                const opened = await replaceOwnedStream({
+                    valid,
+                    stopLocal: () => player.stop(false),
+                    releasePrevious: () => previous.playSessionId ? apiClient.ajax({
+                        type: 'DELETE', timeout: 5000,
+                        url: apiClient.getUrl('Videos/ActiveEncodings', {
+                            deviceId: apiClient.deviceId(), PlaySessionId: previous.playSessionId
+                        })
+                    }) : Promise.resolve(),
+                    open: () => player.play(streamInfo)
+                });
+                if (!opened) return false;
+                streamInfo.started = true;
+                streamInfo.ended = false;
+                sendProgressUpdate(player, 'timeupdate');
+                return true;
+            } finally {
+                data.isChangingStream = false;
+            }
+        };
 
         function changeStream(player, ticks, params) {
             if (canPlayerSeek(player) && params == null) {
@@ -3505,9 +3584,11 @@ export class PlaybackManager {
 
             const errorType = error.type;
 
-            console.warn('[playbackmanager] onPlaybackError:', e, error);
-
             const streamInfo = error.streamInfo || getPlayerData(player).streamInfo;
+
+            if (seerr.hooks.failure({ type: errorType, status: e?.status, message: e?.message }, player)) return;
+
+            console.warn('[playbackmanager] onPlaybackError:', e, error);
 
             if (streamInfo?.url) {
                 const isAlreadyFallbacking = streamInfo.url.toLowerCase().includes('transcodereasons');
@@ -4114,12 +4195,14 @@ export class PlaybackManager {
 
     pause(player = this._currentPlayer) {
         if (player) {
+            seerr.hooks.pauseIntent(player, true);
             player.pause();
         }
     }
 
     unpause(player = this._currentPlayer) {
         if (player) {
+            seerr.hooks.pauseIntent(player, false);
             player.unpause();
         }
     }

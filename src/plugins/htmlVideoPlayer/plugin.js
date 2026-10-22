@@ -2182,7 +2182,14 @@ export class HtmlVideoPlayer {
     unpause() {
         const mediaElement = this.#mediaElement;
         if (mediaElement) {
-            mediaElement.play();
+            const pending = mediaElement.play();
+            if (seerr.local) {
+                // A source replacement can supersede a pending resume. Consume
+                // expected cancellation instead of leaving an unhandled reject.
+                void pending?.catch(error => {
+                    if (!['AbortError', 'NotAllowedError'].includes(error?.name)) onErrorInternal(this, MediaError.PLAYER_ERROR);
+                });
+            }
         }
     }
 

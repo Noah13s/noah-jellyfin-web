@@ -34,6 +34,8 @@ selection, capability negotiation and streaming. Native TV uses another engine.
 | [policy.js](../src/plugins/noah/policy.js) | Capabilities, profile decisions and preparation/PlaybackInfo caches |
 | [embedded.js](../src/plugins/noah/embedded.js) | Preparation, first frame, cancellation, recovery and exact-session cleanup |
 | [protocol.js](../src/plugins/noah/protocol.js) | Ordered commands, acknowledgments and frame/origin checks |
+| [health.js](../src/plugins/noah/health.js) | Failure classification, presentation/clock stalls and bounded recovery budget |
+| [telemetry.js](../src/plugins/noah/telemetry.js) | Sanitized per-owner timings, separate command and frame evidence |
 | [gestures.js](../src/plugins/noah/gestures.js) | Accumulated skip feedback and gestures |
 | [casting.js](../src/plugins/noah/casting.js) | Source-bundled Cast sender transport |
 | [style.scss](../src/plugins/noah/style.scss) | Embedded-player presentation |
