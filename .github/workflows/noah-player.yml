@@ -21,7 +21,7 @@ jobs:
       - run: npm ci --allow-remote=all --no-audit --no-fund
       - run: node scripts/verify-noah-source.mjs
       - run: npx eslint --no-inline-config --config scripts/noah-lint.config.mjs 'src/plugins/noah/**/*.js'
-      - run: node --test test/contracts/*.test.cjs
+      - run: node --test test/contracts/*.cjs
       - run: npm run build:check
       - run: npm test -- --reporter=default --reporter=junit --outputFile.junit=test-results.xml
       - run: npm run build:production

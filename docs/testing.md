@@ -8,7 +8,7 @@ node scripts/verify-noah-source.mjs
 npx eslint --no-inline-config --config scripts/noah-lint.config.mjs 'src/plugins/noah/**/*.js'
 npm run build:check
 npm test
-node --test test/contracts/*.test.cjs
+node --test test/contracts/*.cjs
 npm run build:production
 ```
 
