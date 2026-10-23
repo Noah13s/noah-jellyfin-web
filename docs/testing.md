@@ -5,7 +5,7 @@ Run from the repository root with the Node version in the workflow:
 ```sh
 npm ci --allow-remote=all --no-audit --no-fund
 node scripts/verify-noah-source.mjs
-npx eslint --config scripts/noah-lint.config.mjs 'src/plugins/noah/**/*.js'
+npx eslint --no-inline-config --config scripts/noah-lint.config.mjs 'src/plugins/noah/**/*.js'
 npm run build:check
 npm test
 node --test test/contracts/*.test.cjs

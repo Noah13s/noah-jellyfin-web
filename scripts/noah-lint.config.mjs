@@ -1,6 +1,6 @@
 // Focused safety gate for maintained browser adapters. Upstream's full style
 // migration is separate; these rules must also cover the legacy JS adapters.
-export default [{
+export default [{ ignores: ['**/*.test.*'] }, {
     files: ['src/plugins/noah/**/*.{js,ts}'],
     ignores: ['**/*.test.*'],
     rules: {
