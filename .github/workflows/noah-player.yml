@@ -3,8 +3,9 @@ on:
   pull_request:
     branches: [main]
   push:
-    branches: [main, 'codex/**']
+    branches: [main]
     tags: ['noah-web-*']
+  workflow_dispatch:
 permissions:
   contents: read
 jobs:
@@ -20,8 +21,10 @@ jobs:
       # Upstream's locked classlist.js tarball is a remote package with integrity.
       - run: npm ci --allow-remote=all --no-audit --no-fund
       - run: node scripts/verify-noah-source.mjs
+      - run: node node_modules/eslint/bin/eslint.js --no-inline-config --config scripts/noah-lint.config.mjs 'src/plugins/noah/**/*.js'
+      - run: node --test test/contracts/*.cjs
       - run: npm run build:check
-      - run: npx vitest run src/plugins/noah src/scripts/browser.test.ts src/utils/image.test.ts
+      - run: npm test -- --reporter=default --reporter=junit --outputFile.junit=test-results.xml
       - run: npm run build:production
         env:
           NODE_OPTIONS: --max-old-space-size=4096
@@ -31,4 +34,11 @@ jobs:
         with:
           name: noah-web-${{ github.sha }}
           path: dist/
+          retention-days: 14
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        if: always()
+        with:
+          name: noah-web-tests-${{ github.sha }}
+          path: test-results.xml
+          if-no-files-found: ignore
           retention-days: 14
