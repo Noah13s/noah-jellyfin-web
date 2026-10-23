@@ -5,7 +5,7 @@ Run from the repository root with the Node version in the workflow:
 ```sh
 npm ci --allow-remote=all --no-audit --no-fund
 node scripts/verify-noah-source.mjs
-npx eslint --no-inline-config --config scripts/noah-lint.config.mjs 'src/plugins/noah/**/*.js'
+node node_modules/eslint/bin/eslint.js --no-inline-config --config scripts/noah-lint.config.mjs 'src/plugins/noah/**/*.js'
 npm run build:check
 npm test
 node --test test/contracts/*.cjs
@@ -38,3 +38,13 @@ source, not copied deployment bundles.
 Native decoder/emulator and disposable Jellyfin storage/service checks are owned
 by the private Noah Stream integration repository. Physical Cast, Safari, HDR,
 Bluetooth and TCL frame pacing still require targeted device validation.
+
+## SonarQube Cloud
+
+`SonarCloud Code Analysis` is an additional PR check. Automatic analysis does
+not run Vitest/Cast tests or import their coverage. A zero/missing coverage value
+therefore does not measure this suite; the test artifacts above are the execution
+evidence. See [Sonar's coverage documentation](https://docs.sonarsource.com/sonarqube-cloud/analyzing-source-code/test-coverage/overview/).
+Keep this check and `check-and-build` green for the same commit before merging.
+PR updates run once, instead of starting duplicate branch-push builds. Use manual
+workflow dispatch when testing a branch without a pull request.
