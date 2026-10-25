@@ -1,4 +1,5 @@
 import escapeHtml from 'escape-html';
+import { guideDates } from './dateRange';
 
 import { ItemAction } from 'constants/itemAction';
 import { ServerConnections } from 'lib/jellyfin-apiclient';
@@ -852,13 +853,11 @@ function Guide(options) {
         let startTimeOfDayMs = (start.getHours() * 60 * 60 * 1000);
         startTimeOfDayMs += start.getMinutes() * 60 * 1000;
 
-        while (start <= end) {
-            const isActive = date.getDate() === start.getDate() && date.getMonth() === start.getMonth() && date.getFullYear() === start.getFullYear();
+        for (const day of guideDates(start, end)) {
+            const isActive = date.getDate() === day.getDate() && date.getMonth() === day.getMonth() && date.getFullYear() === day.getFullYear();
 
-            dateTabsHtml += getDateTabText(start, isActive, tabIndex);
+            dateTabsHtml += getDateTabText(day, isActive, tabIndex);
 
-            start.setDate(start.getDate() + 1);
-            start.setHours(0, 0, 0, 0);
             tabIndex++;
         }
 

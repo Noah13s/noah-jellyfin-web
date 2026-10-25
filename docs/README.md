@@ -10,6 +10,7 @@
 6. [Troubleshooting](troubleshooting.md): symptoms, evidence and device limits.
 7. [Playback recovery and measurements](playback-recovery.md): classified errors, encoder handoff and frame evidence.
 8. [Testing](testing.md): complete CI gates, Cast contracts and verification boundaries.
+9. [Sonar remediation](sonar-remediation.md): priority-one changes, finding ledger and verification limits.
 
 ## Authoritative records
 
