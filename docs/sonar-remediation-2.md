@@ -7,6 +7,12 @@ control-label findings, the document-language finding and four dependency
 lifecycle-script findings. Counts are a source-change ledger, not confirmed
 Sonar closures until the approved revision is analyzed.
 
+The first merged scan closed 170 findings and retained five controls whose
+labels are supplied dynamically: the four item-detail track selectors and the
+generic prompt. The follow-up gives these templates localized fallback names;
+the prompt uses its contextual label or title once opened. Track names continue
+to update through the existing controller and `setControlLabel` path.
+
 ### Accessible before custom-element upgrade
 
 Jellyfin's input/select/textarea elements generate visible labels at runtime.
