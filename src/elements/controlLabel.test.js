@@ -1,12 +1,23 @@
-import { readFileSync } from 'node:fs';
-import { URL } from 'node:url';
+import { readFileSync, readdirSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { setControlLabel } from './controlLabel';
-const readTemplate = path => readFileSync(new URL(path, import.meta.url), 'utf8');
+const readTemplate = path => {
+    let location = dirname(fileURLToPath(import.meta.url));
+    const parts = path.split('/');
+    for (const part of parts) {
+        if (part !== '..' && !readdirSync(location).includes(part)) {
+            throw new Error(`Template path has missing or incorrectly cased segment: ${part}`);
+        }
+        location = join(location, part);
+    }
+    return readFileSync(location, 'utf8');
+};
 const playback = readTemplate('../components/playbackSettings/playbackSettings.template.html');
 const display = readTemplate('../components/displaySettings/displaySettings.template.html');
 const metadata = readTemplate('../components/metadataEditor/metadataEditor.template.html');
-const subtitles = readTemplate('../components/subtitleSettings/subtitleSettings.template.html');
+const subtitles = readTemplate('../components/subtitlesettings/subtitlesettings.template.html');
 const video = readTemplate('../apps/legacy/controllers/playback/video/index.html');
 
 describe.each(['input', 'select', 'textarea'])('dynamic %s label', tag => {
