@@ -8,15 +8,15 @@
 <div class="formDialogContent smoothScrollY" style="padding-top:2em;">
     <form class="popupEditPersonForm dialogContentInner dialog-content-centered">
         <div class="inputContainer">
-            <input type="text" is="emby-input" class="txtPersonName" required="required" label="${LabelName}" />
+            <input type="text" is="emby-input" class="txtPersonName" required="required" label="${LabelName}" aria-label="${LabelName}" />
         </div>
 
         <div class="selectContainer">
-            <select is="emby-select" id="selectPersonType" class="selectPersonType" label="${LabelType}"></select>
+            <select is="emby-select" id="selectPersonType" class="selectPersonType" label="${LabelType}" aria-label="${LabelType}"></select>
         </div>
 
         <div class="inputContainer fldRole hide">
-            <input is="emby-input" type="text" class="txtPersonRole" label="${LabelPersonRole}" />
+            <input is="emby-input" type="text" class="txtPersonRole" label="${LabelPersonRole}" aria-label="${LabelPersonRole}" />
             <div class="fieldDescription">${LabelPersonRoleHelp}</div>
         </div>
 

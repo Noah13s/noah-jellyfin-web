@@ -11,6 +11,7 @@
 7. [Playback recovery and measurements](playback-recovery.md): classified errors, encoder handoff and frame evidence.
 8. [Testing](testing.md): complete CI gates, Cast contracts and verification boundaries.
 9. [Sonar remediation](sonar-remediation.md): priority-one changes, finding ledger and verification limits.
+10. [Sonar batch two](sonar-remediation-2.md): accessible control names and script-disabled installs.
 
 ## Authoritative records
 

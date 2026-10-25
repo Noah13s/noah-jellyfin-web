@@ -24,79 +24,79 @@
 
             <div style="padding: 0 0 10px;">
                 <div id="fldContentType" class="selectContainer hide">
-                    <select is="emby-select" id="selectContentType" label="${LabelContentType}"></select>
+                    <select is="emby-select" id="selectContentType" label="${LabelContentType}" aria-label="${LabelContentType}"></select>
                 </div>
                 <div id="fldPath" class="inputContainer">
                     <div class="align-items-center flex">
                         <div class="flex-grow">
-                            <input is="emby-input" id="txtPath" type="text" label="${LabelPath}" class="flex-grow" readonly dir="ltr"/>
+                            <input is="emby-input" id="txtPath" type="text" label="${LabelPath}" aria-label="${LabelPath}" class="flex-grow" readonly dir="ltr"/>
                         </div>
                     </div>
                 </div>
                 <div class="inputContainer">
-                    <input is="emby-input" id="txtName" type="text" label="${LabelTitle}" required="required" />
+                    <input is="emby-input" id="txtName" type="text" label="${LabelTitle}" aria-label="${LabelTitle}" required="required" />
                 </div>
                 <div id="fldOriginalName" class="inputContainer">
-                    <input is="emby-input" id="txtOriginalName" type="text" label="${LabelOriginalTitle}" />
+                    <input is="emby-input" id="txtOriginalName" type="text" label="${LabelOriginalTitle}" aria-label="${LabelOriginalTitle}" />
                 </div>
                 <div id="fldOriginalLanguage" class="hide selectContainer">
-                    <select is="emby-select" id="selectOriginalLanguage" label="${LabelOriginalLanguage}"></select>
+                    <select is="emby-select" id="selectOriginalLanguage" label="${LabelOriginalLanguage}" aria-label="${LabelOriginalLanguage}"></select>
                 </div>
                 <div class="inputContainer">
-                    <input is="emby-input" id="txtSortName" type="text" label="${LabelSortTitle}" />
+                    <input is="emby-input" id="txtSortName" type="text" label="${LabelSortTitle}" aria-label="${LabelSortTitle}" />
                 </div>
                 <div id="fldDateAdded" class="hide inputContainer">
-                    <input is="emby-input" id="txtDateAdded" type="date" label="${LabelDateAdded}" />
+                    <input is="emby-input" id="txtDateAdded" type="date" label="${LabelDateAdded}" aria-label="${LabelDateAdded}" />
                     <div class="fieldDescription">${ConfigureDateAdded}</div>
                 </div>
                 <div id="fldStatus" class="hide selectContainer">
-                    <select is="emby-select" id="selectStatus" label="${LabelStatus}"></select>
+                    <select is="emby-select" id="selectStatus" label="${LabelStatus}" aria-label="${LabelStatus}"></select>
                 </div>
                 <div id="fldArtist" class="hide inputContainer">
-                    <input is="emby-input" id="txtArtist" type="text" label="${LabelArtists}" />
+                    <input is="emby-input" id="txtArtist" type="text" label="${LabelArtists}" aria-label="${LabelArtists}" />
                     <div class="fieldDescription">${LabelArtistsHelp}</div>
                 </div>
                 <div id="fldAlbumArtist" class="hide inputContainer">
-                    <input is="emby-input" id="txtAlbumArtist" type="text" label="${LabelAlbumArtists}" />
+                    <input is="emby-input" id="txtAlbumArtist" type="text" label="${LabelAlbumArtists}" aria-label="${LabelAlbumArtists}" />
                     <div class="fieldDescription">${LabelArtistsHelp}</div>
                 </div>
                 <div id="seriesName" class="hide inputContainer">
                     <input is="emby-input" id="txtseriesName" type="text" label="${SeriesName}" aria-label="${SeriesName}" />
                 </div>
                 <div id="fldAlbum" class="hide inputContainer">
-                    <input is="emby-input" id="txtAlbum" type="text" label="${LabelAlbum}" />
+                    <input is="emby-input" id="txtAlbum" type="text" label="${LabelAlbum}" aria-label="${LabelAlbum}" />
                 </div>
                 <div class="inlineForm">
                     <div id="fldParentIndexNumber" class="hide inputContainer">
-                        <input is="emby-input" id="txtParentIndexNumber" type="number" />
+                        <input is="emby-input" id="txtParentIndexNumber" aria-label="${LabelParentNumber}" type="number" />
                     </div>
                     <div id="fldIndexNumber" class="hide inputContainer">
-                        <input is="emby-input" id="txtIndexNumber" type="number" pattern="[0-9]*" />
+                        <input is="emby-input" id="txtIndexNumber" aria-label="${LabelNumber}" type="number" pattern="[0-9]*" />
                     </div>
                 </div>
                 <div id="fldCommunityRating" class="hide inputContainer">
-                    <input is="emby-input" id="txtCommunityRating" type="number" step="any" min="0" max="10" label="${LabelCommunityRating}" />
+                    <input is="emby-input" id="txtCommunityRating" type="number" step="any" min="0" max="10" label="${LabelCommunityRating}" aria-label="${LabelCommunityRating}" />
                 </div>
                 <div id="fldCriticRating" class="hide inputContainer">
-                    <input is="emby-input" id="txtCriticRating" type="number" step=".1" label="${LabelCriticRating}" />
+                    <input is="emby-input" id="txtCriticRating" type="number" step=".1" label="${LabelCriticRating}" aria-label="${LabelCriticRating}" />
                 </div>
                 <div id="fldTagline" class="hide inputContainer">
-                    <input is="emby-input" id="txtTagline" type="text" label="${LabelTagline}" />
+                    <input is="emby-input" id="txtTagline" type="text" label="${LabelTagline}" aria-label="${LabelTagline}" />
                 </div>
                 <div class="inputContainer overviewContainer hide">
-                    <textarea is="emby-textarea" id="txtOverview" label="${LabelOverview}"></textarea>
+                    <textarea is="emby-textarea" id="txtOverview" label="${LabelOverview}" aria-label="${LabelOverview}"></textarea>
                 </div>
                 <div id="fldPremiereDate" class="inputContainer">
-                    <input is="emby-input" id="txtPremiereDate" label="${LabelReleaseDate}" type="date" />
+                    <input is="emby-input" id="txtPremiereDate" label="${LabelReleaseDate}" aria-label="${LabelReleaseDate}" type="date" />
                 </div>
                 <div id="fldYear" class="hide inputContainer">
-                    <input is="emby-input" id="txtProductionYear" type="number" label="${LabelYear}" />
+                    <input is="emby-input" id="txtProductionYear" type="number" label="${LabelYear}" aria-label="${LabelYear}" />
                 </div>
                 <div id="fldPlaceOfBirth" class="hide inputContainer">
-                    <input is="emby-input" id="txtPlaceOfBirth" type="text" label="${LabelPlaceOfBirth}" />
+                    <input is="emby-input" id="txtPlaceOfBirth" type="text" label="${LabelPlaceOfBirth}" aria-label="${LabelPlaceOfBirth}" />
                 </div>
                 <div id="fldEndDate" class="inputContainer">
-                    <input is="emby-input" id="txtEndDate" label="${LabelEndDate}" type="date" />
+                    <input is="emby-input" id="txtEndDate" label="${LabelEndDate}" aria-label="${LabelEndDate}" type="date" />
                 </div>
                 <div id="fldAirDays" class="hide">
                     <p>${LabelAirDays}</p>
@@ -135,21 +135,21 @@
 
                 </div>
                 <div id="fldAirTime" class="inputContainer hide">
-                    <input is="emby-input" id="txtAirTime" type="text" label="${LabelAirTime}" />
+                    <input is="emby-input" id="txtAirTime" type="text" label="${LabelAirTime}" aria-label="${LabelAirTime}" />
                 </div>
                 <div id="fldSeriesRuntime" class="inputContainer hide">
-                    <input is="emby-input" id="txtSeriesRuntime" type="number" label="${LabelRuntimeMinutes}" />
+                    <input is="emby-input" id="txtSeriesRuntime" type="number" label="${LabelRuntimeMinutes}" aria-label="${LabelRuntimeMinutes}" />
                 </div>
                 <div class="inlineForm">
                     <div id="fldOfficialRating" class="selectContainer hide">
-                        <select is="emby-select" id="selectOfficialRating" label="${LabelParentalRating}"></select>
+                        <select is="emby-select" id="selectOfficialRating" label="${LabelParentalRating}" aria-label="${LabelParentalRating}"></select>
                     </div>
                     <div id="fldCustomRating" class="selectContainer hide">
-                        <select is="emby-select" id="selectCustomRating" label="${LabelCustomRating}"></select>
+                        <select is="emby-select" id="selectCustomRating" label="${LabelCustomRating}" aria-label="${LabelCustomRating}"></select>
                     </div>
                 </div>
                 <div id="fldHeight" class="selectContainer hide">
-                    <select is="emby-select" id="selectHeight" label="${MediaInfoResolution}">
+                    <select is="emby-select" id="selectHeight" label="${MediaInfoResolution}" aria-label="${MediaInfoResolution}">
                         <option value="0"></option>
                         <option value="480">${ChannelResolutionSD}</option>
                         <option value="576">${ChannelResolutionSDPAL}</option>
@@ -160,10 +160,10 @@
                 </div>
                 <div class="inlineForm">
                     <div id="fldOriginalAspectRatio" class="inputContainer hide">
-                        <input is="emby-input" id="txtOriginalAspectRatio" type="text" label="${LabelOriginalAspectRatio}" />
+                        <input is="emby-input" id="txtOriginalAspectRatio" type="text" label="${LabelOriginalAspectRatio}" aria-label="${LabelOriginalAspectRatio}" />
                     </div>
                     <div id="fld3dFormat" class="selectContainer hide">
-                        <select is="emby-select" id="select3dFormat" label="${Label3DFormat}">
+                        <select is="emby-select" id="select3dFormat" label="${Label3DFormat}" aria-label="${Label3DFormat}">
                             <option value=""></option>
                             <option value="HalfSideBySide">HSBS</option>
                             <option value="HalfTopAndBottom">HTAB</option>
@@ -175,7 +175,7 @@
                 </div>
 
                 <div id="fldDisplayOrder" class="fldDisplaySetting selectContainer hide">
-                    <select is="emby-select" id="selectDisplayOrder" label="${LabelDisplayOrder}"></select>
+                    <select is="emby-select" id="selectDisplayOrder" label="${LabelDisplayOrder}" aria-label="${LabelDisplayOrder}"></select>
                     <div class="fieldDescription seriesDisplayOrderDescription">${SeriesDisplayOrderHelp}</div>
                 </div>
 
@@ -187,13 +187,13 @@
                 </h2>
                 <div class="inlineForm">
                     <div class="inputContainer">
-                        <input is="emby-input" id="txtAirsBeforeSeason" type="number" pattern="[0-9]*" label="${LabelAirsBeforeSeason}" />
+                        <input is="emby-input" id="txtAirsBeforeSeason" type="number" pattern="[0-9]*" label="${LabelAirsBeforeSeason}" aria-label="${LabelAirsBeforeSeason}" />
                     </div>
                     <div class="inputContainer">
-                        <input is="emby-input" id="txtAirsAfterSeason" type="number" pattern="[0-9]*" label="${LabelAirsAfterSeason}" />
+                        <input is="emby-input" id="txtAirsAfterSeason" type="number" pattern="[0-9]*" label="${LabelAirsAfterSeason}" aria-label="${LabelAirsAfterSeason}" />
                     </div>
                     <div class="inputContainer">
-                        <input is="emby-input" id="txtAirsBeforeEpisode" type="number" pattern="[0-9]*" label="${LabelAirsBeforeEpisode}" />
+                        <input is="emby-input" id="txtAirsBeforeEpisode" type="number" pattern="[0-9]*" label="${LabelAirsBeforeEpisode}" aria-label="${LabelAirsBeforeEpisode}" />
                     </div>
                 </div>
             </div>
@@ -247,11 +247,11 @@
                 <h2>${HeaderMetadataSettings}</h2>
                 <div>
                     <div class="selectContainer">
-                        <select is="emby-select" id="selectLanguage" label="${LabelMetadataDownloadLanguage}"></select>
+                        <select is="emby-select" id="selectLanguage" label="${LabelMetadataDownloadLanguage}" aria-label="${LabelMetadataDownloadLanguage}"></select>
                         <div class="fieldDescription editorfieldDescription">${MessageLeaveEmptyToInherit}</div>
                     </div>
                     <div class="selectContainer">
-                        <select is="emby-select" id="selectCountry" label="${LabelCountry}"></select>
+                        <select is="emby-select" id="selectCountry" label="${LabelCountry}" aria-label="${LabelCountry}"></select>
                     </div>
                     <div class="fieldDescription editorfieldDescription">${MessageLeaveEmptyToInherit}</div>
 

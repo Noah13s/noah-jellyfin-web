@@ -7,15 +7,15 @@
                     <p style="margin-top:2em;">${UserProfilesIntro}</p>
                     <br />
                     <div class="inputContainer">
-                        <input is="emby-input" type="text" id="txtUsername" label="${LabelUsername}" required="required" />
+                        <input is="emby-input" type="text" id="txtUsername" label="${LabelUsername}" aria-label="${LabelUsername}" required="required" />
                         <div class="fieldDescription">${SelectAdminUsername}</div>
                     </div>
                     <div class="inputContainer">
-                        <input is="emby-input" id="txtManualPassword" type="password" label="${LabelPassword}" required="required" />
+                        <input is="emby-input" id="txtManualPassword" type="password" label="${LabelPassword}" aria-label="${LabelPassword}" required="required" />
                         <div class="fieldDescription">${PasswordRequiredForAdmin}</div>
                     </div>
                     <div class="inputContainer">
-                        <input is="emby-input" id="txtPasswordConfirm" type="password" label="${LabelPasswordConfirm}" required="required" />
+                        <input is="emby-input" id="txtPasswordConfirm" type="password" label="${LabelPasswordConfirm}" aria-label="${LabelPasswordConfirm}" required="required" />
                     </div>
                     <p>${MoreUsersCanBeAddedLater}</p>
                 </div>

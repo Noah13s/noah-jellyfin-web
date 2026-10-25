@@ -58,7 +58,7 @@ jobs:
           check-latest: true 
     
       - name: Install Node.js dependencies
-        run: npm ci --no-audit
+        run: npm ci --ignore-scripts --allow-remote=all --no-audit
     
       - name: Run eslint
         uses: CatChen/eslint-suggestion-action@2b07b898c0dd5a016586d22b54282199b79cd358 # v4.1.33

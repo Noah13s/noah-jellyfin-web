@@ -1,3 +1,4 @@
+import { setControlLabel } from '../controlLabel';
 import './emby-textarea.scss';
 import 'webcomponents.js/webcomponents-lite';
 import '../emby-input/emby-input';
@@ -122,7 +123,7 @@ EmbyTextAreaPrototype.attachedCallback = function () {
     });
 
     this.label = function (text) {
-        label.innerText = text;
+        setControlLabel(this, label, text);
     };
 
     new AutoGrow(this);

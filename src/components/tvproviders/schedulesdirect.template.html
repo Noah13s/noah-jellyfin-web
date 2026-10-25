@@ -16,14 +16,14 @@
 
 <form class="formLogin">
     <!-- Terrible, but this hidden field prevents the yellow background in chrome -->
-    <div style="height:0; overflow: hidden;"><input type="text" name="fakeusernameremembered" tabindex="-1" /><input type="password" name="fakepasswordremembered" tabindex="-1" /></div>
+    <div style="height:0; overflow: hidden;"><input type="text" name="fakeusernameremembered" aria-label="${LabelUsername}" tabindex="-1" /><input type="password" name="fakepasswordremembered" aria-label="${LabelPassword}" tabindex="-1" /></div>
     <div>
         <br />
         <div class="inputContainer">
-            <input is="emby-input" class="txtUser" label="${LabelUsername}" required="required" autocomplete="off" />
+            <input is="emby-input" class="txtUser" label="${LabelUsername}" aria-label="${LabelUsername}" required="required" autocomplete="off" />
         </div>
         <div class="inputContainer">
-            <input is="emby-input" class="txtPass" label="${LabelPassword}" required="required" autocomplete="off" type="password" />
+            <input is="emby-input" class="txtPass" label="${LabelPassword}" aria-label="${LabelPassword}" required="required" autocomplete="off" type="password" />
         </div>
         <div>
             <button is="emby-button" type="submit" class="raised button-submit block"><span>${Save}</span></button>
@@ -43,13 +43,13 @@
     <form class="formListings">
         <div>
             <div class="selectContainer">
-                <select is="emby-select" id="selectCountry" data-mini="true" required="required" label="${LabelCountry}"></select>
+                <select is="emby-select" id="selectCountry" data-mini="true" required="required" label="${LabelCountry}" aria-label="${LabelCountry}"></select>
             </div>
             <div class="inputContainer">
-                <input is="emby-input" class="txtZipCode" label="${LabelZipCode}" required="required" />
+                <input is="emby-input" class="txtZipCode" label="${LabelZipCode}" aria-label="${LabelZipCode}" required="required" />
             </div>
             <div class="selectContainer">
-                <select is="emby-select" id="selectListing" data-mini="true" required="required" label="${LabelLineup}"></select>
+                <select is="emby-select" id="selectListing" data-mini="true" required="required" label="${LabelLineup}" aria-label="${LabelLineup}"></select>
             </div>
             <div>
                 <label class="checkboxContainer">

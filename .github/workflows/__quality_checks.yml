@@ -55,7 +55,7 @@ jobs:
           check-latest: true
 
       - name: Install dependencies 📦
-        run: npm ci --no-audit
+        run: npm ci --ignore-scripts --allow-remote=all --no-audit
 
       - name: Run ${{ matrix.command }} ⚙️
         run: npm run ${{ matrix.command }}

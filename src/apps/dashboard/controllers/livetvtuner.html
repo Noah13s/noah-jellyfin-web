@@ -9,36 +9,36 @@
                 </div>
 
                 <div class="selectContainer">
-                    <select is="emby-select" class="selectType" label="${LabelTunerType}" required="required"></select>
+                    <select is="emby-select" class="selectType" label="${LabelTunerType}" aria-label="${LabelTunerType}" required="required"></select>
                 </div>
 
                 <button is="emby-button" type="button" class="raised button-cancel block btnDetect hide" style="margin-bottom:3em;">${HeaderDetectMyDevices}</button>
 
                 <div class="inputContainer fldFriendlyName hide">
-                    <input is="emby-input" type="text" class="txtFriendlyName" label="${LabelFriendlyName}" autocomplete="off" />
+                    <input is="emby-input" type="text" class="txtFriendlyName" label="${LabelFriendlyName}" aria-label="${LabelFriendlyName}" autocomplete="off" />
                 </div>
 
                 <div class="inputContainer fldPath hide">
                     <div style="display: flex; align-items: center;">
                         <div style="flex-grow: 1;">
-                            <input is="emby-input" type="text" class="txtDevicePath" label="${LabelFileOrUrl}" required="required" autocomplete="off" />
+                            <input is="emby-input" type="text" class="txtDevicePath" label="${LabelFileOrUrl}" aria-label="${LabelFileOrUrl}" required="required" autocomplete="off" />
                         </div>
                         <button type="button" is="paper-icon-button-light" class="btnSelectPath hide emby-input-iconbutton"><span class="material-icons search" aria-hidden="true"></span></button>
                     </div>
                 </div>
 
                 <div class="inputContainer fldUserAgent hide">
-                    <input is="emby-input" type="text" class="txtUserAgent" label="${LabelUserAgent}" autocomplete="off" />
+                    <input is="emby-input" type="text" class="txtUserAgent" label="${LabelUserAgent}" aria-label="${LabelUserAgent}" autocomplete="off" />
                     <div class="fieldDescription">${UserAgentHelp}</div>
                 </div>
 
                 <div class="inputContainer fldTunerCount hide">
-                    <input is="emby-input" type="number" pattern="[0-9]*" required="required" min="0" step="1" class="txtTunerCount" label="${LabelSimultaneousConnectionLimit}" autocomplete="off" value="0" />
+                    <input is="emby-input" type="number" pattern="[0-9]*" required="required" min="0" step="1" class="txtTunerCount" label="${LabelSimultaneousConnectionLimit}" aria-label="${LabelSimultaneousConnectionLimit}" autocomplete="off" value="0" />
                     <div class="fieldDescription">${SimultaneousConnectionLimitHelp}</div>
                 </div>
 
                 <div class="inputContainer fldFallbackMaxStreamingBitrate hide">
-                    <input is="emby-input" type="number" pattern="[0-9]*" required="required" min="1" step="1" class="txtFallbackMaxStreamingBitrate" label="${LabelFallbackMaxStreamingBitrate}" autocomplete="off" value="30" />
+                    <input is="emby-input" type="number" pattern="[0-9]*" required="required" min="1" step="1" class="txtFallbackMaxStreamingBitrate" label="${LabelFallbackMaxStreamingBitrate}" aria-label="${LabelFallbackMaxStreamingBitrate}" autocomplete="off" value="30" />
                     <div class="fieldDescription">${FallbackMaxStreamingBitrateHelp}</div>
                 </div>
 
