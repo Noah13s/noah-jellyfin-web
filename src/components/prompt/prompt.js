@@ -19,6 +19,7 @@ export default (() => {
         } else {
             txtInput.setAttribute('label', options.label || '');
         }
+        txtInput.setAttribute('aria-label', options.label || options.title || globalize.translate('LabelValue'));
         txtInput.value = options.value || '';
     }
 

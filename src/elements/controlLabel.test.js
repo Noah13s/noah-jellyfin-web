@@ -19,6 +19,8 @@ const display = readTemplate('../components/displaySettings/displaySettings.temp
 const metadata = readTemplate('../components/metadataEditor/metadataEditor.template.html');
 const subtitles = readTemplate('../components/subtitlesettings/subtitlesettings.template.html');
 const video = readTemplate('../apps/legacy/controllers/playback/video/index.html');
+const details = readTemplate('../apps/legacy/controllers/itemDetails/index.html');
+const prompt = readTemplate('../components/prompt/prompt.template.html');
 
 describe.each(['input', 'select', 'textarea'])('dynamic %s label', tag => {
     it('updates the accessible name when the localized visible label changes', () => {
@@ -46,4 +48,16 @@ it('gives the video timeline and volume separate accessible names', () => {
     const doc = new DOMParser().parseFromString(video, 'text/html');
     expect(doc.querySelector('.osdPositionSlider').getAttribute('aria-label')).toBe('${LabelTime}');
     expect(doc.querySelector('.osdVolumeSlider').getAttribute('aria-label')).toBe('${LabelVolume}');
+});
+
+it('names the media version and each track selector before dynamic labels are populated', () => {
+    const doc = new DOMParser().parseFromString(details, 'text/html');
+    for (const [selector, name] of [['.selectSource', '${LabelVersion}'], ['.selectVideo', '${Video}'], ['.selectAudio', '${Audio}'], ['.selectSubtitles', '${Subtitles}']]) {
+        expect(doc.querySelector(selector).getAttribute('aria-label')).toBe(name);
+    }
+});
+
+it('provides a localized prompt name before its contextual label is supplied', () => {
+    const doc = new DOMParser().parseFromString(prompt, 'text/html');
+    expect(doc.querySelector('#txtInput').getAttribute('aria-label')).toBe('${LabelValue}');
 });
