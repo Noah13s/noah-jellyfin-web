@@ -8,13 +8,13 @@
         <form class="addLibraryForm" style="max-width:100%;">
 
             <div id="fldCollectionType" class="selectContainer">
-                <select is="emby-select" id="selectCollectionType" data-mini="true" required="required" label="${LabelContentType}"></select>
+                <select is="emby-select" id="selectCollectionType" data-mini="true" required="required" label="${LabelContentType}" aria-label="${LabelContentType}"></select>
                 <div class="collectionTypeFieldDescription fieldDescription">
                 </div>
             </div>
 
             <div class="inputContainer">
-                <input is="emby-input" type="text" id="txtValue" required="required" label="${LabelDisplayName}" />
+                <input is="emby-input" type="text" id="txtValue" required="required" label="${LabelDisplayName}" aria-label="${LabelDisplayName}" />
             </div>
 
             <div class="folders">

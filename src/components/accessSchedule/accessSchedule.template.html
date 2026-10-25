@@ -11,7 +11,7 @@
         <form class="scheduleForm" style="margin:auto;">
 
             <div class="selectContainer">
-                <select is="emby-select" id="selectDay" label="${LabelAccessDay}">
+                <select is="emby-select" id="selectDay" label="${LabelAccessDay}" aria-label="${LabelAccessDay}">
                     <option value="Sunday">${Sunday}</option>
                     <option value="Monday">${Monday}</option>
                     <option value="Tuesday">${Tuesday}</option>
@@ -25,10 +25,10 @@
                 </select>
             </div>
             <div class="selectContainer">
-                <select is="emby-select" class="selectHour" id="selectStart" label="${LabelAccessStart}"></select>
+                <select is="emby-select" class="selectHour" id="selectStart" label="${LabelAccessStart}" aria-label="${LabelAccessStart}"></select>
             </div>
             <div class="selectContainer">
-                <select is="emby-select" class="selectHour" id="selectEnd" label="${LabelAccessEnd}"></select>
+                <select is="emby-select" class="selectHour" id="selectEnd" label="${LabelAccessEnd}" aria-label="${LabelAccessEnd}"></select>
             </div>
 
             <div class="formDialogFooter">

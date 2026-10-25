@@ -13,7 +13,7 @@
             <div class="inputContainer">
                 <div class="flex align-items-center">
                     <div class="flex-grow">
-                        <input is="emby-input" type="number" id="txtPrePaddingMinutes" pattern="[0-9]*" required="required" min="0" step="1" label="${LabelStartWhenPossible}" />
+                        <input is="emby-input" type="number" id="txtPrePaddingMinutes" pattern="[0-9]*" required="required" min="0" step="1" label="${LabelStartWhenPossible}" aria-label="${LabelStartWhenPossible}" />
                     </div>
                     <div class="fieldDescription" style="margin-left:.5em;font-size:90%;margin-top:1.3em;">
                         ${MinutesBefore}
@@ -23,7 +23,7 @@
             <div class="inputContainer">
                 <div class="flex align-items-center">
                     <div class="flex-grow">
-                        <input is="emby-input" type="number" id="txtPostPaddingMinutes" pattern="[0-9]*" required="required" min="0" step="1" label="${LabelStopWhenPossible}" />
+                        <input is="emby-input" type="number" id="txtPostPaddingMinutes" pattern="[0-9]*" required="required" min="0" step="1" label="${LabelStopWhenPossible}" aria-label="${LabelStopWhenPossible}" />
                     </div>
                     <div class="fieldDescription" style="margin-left:.5em;font-size:90%;margin-top:1.3em;">
                         ${MinutesAfter}

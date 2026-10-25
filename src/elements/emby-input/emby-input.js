@@ -1,3 +1,4 @@
+import { setControlLabel } from '../controlLabel';
 import browser from '../../scripts/browser';
 import dom from '../../utils/dom';
 import './emby-input.scss';
@@ -108,7 +109,7 @@ EmbyInputPrototype.attachedCallback = function () {
 };
 
 EmbyInputPrototype.label = function (text) {
-    this.labelElement.innerText = text;
+    setControlLabel(this, this.labelElement, text);
 };
 
 document.registerElement('emby-input', {

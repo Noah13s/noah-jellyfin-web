@@ -1945,5 +1945,6 @@
     "LabelPlayerSizes": "Player sizes",
     "LabelPlaybackQuality": "Frame dropped / corrupted",
     "AudioLanguages": "Audio languages",
-    "SubtitleLanguages": "Subtitle languages"
+    "SubtitleLanguages": "Subtitle languages",
+    "LabelVolume": "Volume"
 }

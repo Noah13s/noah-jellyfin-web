@@ -1,3 +1,4 @@
+import { setControlLabel } from '../controlLabel';
 import layoutManager from '../../components/layoutManager';
 import browser from '../../scripts/browser';
 import actionsheet from '../../components/actionSheet/actionSheet';
@@ -129,7 +130,7 @@ EmbySelectPrototype.attachedCallback = function () {
 EmbySelectPrototype.setLabel = function (text) {
     const label = this.parentNode?.querySelector('label');
 
-    label.innerText = text;
+    setControlLabel(this, label, text);
 };
 
 document.registerElement('emby-select', {

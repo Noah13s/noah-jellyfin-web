@@ -29,17 +29,17 @@
             </div>
             <div class="inputContainer inputContainer-withDescription">
                 <input type="number" is="emby-input" id="txtMinDelaySpeedToSync" pattern="[0-9]*"
-                    label="${LabelSyncPlaySettingsMinDelaySpeedToSync}" />
+                    label="${LabelSyncPlaySettingsMinDelaySpeedToSync}" aria-label="${LabelSyncPlaySettingsMinDelaySpeedToSync}" />
                 <div class="fieldDescription">${LabelSyncPlaySettingsMinDelaySpeedToSyncHelp}</div>
             </div>
             <div class="inputContainer inputContainer-withDescription">
                 <input type="number" is="emby-input" id="txtMaxDelaySpeedToSync" pattern="[0-9]*"
-                    label="${LabelSyncPlaySettingsMaxDelaySpeedToSync}" min="0"/>
+                    label="${LabelSyncPlaySettingsMaxDelaySpeedToSync}" aria-label="${LabelSyncPlaySettingsMaxDelaySpeedToSync}" min="0"/>
                 <div class="fieldDescription">${LabelSyncPlaySettingsMaxDelaySpeedToSyncHelp}</div>
             </div>
             <div class="inputContainer inputContainer-withDescription">
                 <input type="number" is="emby-input" id="txtSpeedToSyncDuration" pattern="[0-9]*"
-                    label="${LabelSyncPlaySettingsSpeedToSyncDuration}" min="0"/>
+                    label="${LabelSyncPlaySettingsSpeedToSyncDuration}" aria-label="${LabelSyncPlaySettingsSpeedToSyncDuration}" min="0"/>
                 <div class="fieldDescription">${LabelSyncPlaySettingsSpeedToSyncDurationHelp}</div>
             </div>
 
@@ -53,7 +53,7 @@
             </div>
             <div class="inputContainer inputContainer-withDescription">
                 <input type="number" is="emby-input" id="txtMinDelaySkipToSync" pattern="[0-9]*"
-                    label="${LabelSyncPlaySettingsMinDelaySkipToSync}" min="0"/>
+                    label="${LabelSyncPlaySettingsMinDelaySkipToSync}" aria-label="${LabelSyncPlaySettingsMinDelaySkipToSync}" min="0"/>
                 <div class="fieldDescription">${LabelSyncPlaySettingsMinDelaySkipToSyncHelp}</div>
             </div>
 
@@ -61,7 +61,7 @@
             <h2 class="sectionTitle">${HeaderSyncPlayTimeSyncSettings}</h2>
             <div class="inputContainer inputContainer-withDescription">
                 <input type="number" is="emby-input" id="txtExtraTimeOffset" pattern="[0-9]*"
-                    label="${LabelSyncPlaySettingsExtraTimeOffset}" min="0"/>
+                    label="${LabelSyncPlaySettingsExtraTimeOffset}" aria-label="${LabelSyncPlaySettingsExtraTimeOffset}" min="0"/>
                 <div class="fieldDescription">${LabelSyncPlaySettingsExtraTimeOffsetHelp}</div>
             </div>
         </form>

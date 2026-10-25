@@ -5,11 +5,11 @@
         </h2>
 
         <div class="selectContainer">
-            <select is="emby-select" id="selectSubtitleLanguage" label="${LabelPreferredSubtitleLanguage}"></select>
+            <select is="emby-select" id="selectSubtitleLanguage" label="${LabelPreferredSubtitleLanguage}" aria-label="${LabelPreferredSubtitleLanguage}"></select>
         </div>
 
         <div class="selectContainer">
-            <select is="emby-select" id="selectSubtitlePlaybackMode" label="${LabelSubtitlePlaybackMode}">
+            <select is="emby-select" id="selectSubtitlePlaybackMode" label="${LabelSubtitlePlaybackMode}" aria-label="${LabelSubtitlePlaybackMode}">
                 <option value="Default">${Default}</option>
                 <option value="Smart">${Smart}</option>
                 <option value="OnlyForced">${OnlyForcedSubtitles}</option>
@@ -24,7 +24,7 @@
         </div>
 
         <div class="selectContainer fldBurnIn hide">
-            <select is="emby-select" id="selectSubtitleBurnIn" label="${LabelBurnSubtitles}">
+            <select is="emby-select" id="selectSubtitleBurnIn" label="${LabelBurnSubtitles}" aria-label="${LabelBurnSubtitles}">
                 <option value="">${Auto}</option>
                 <option value="onlyimageformats">${OnlyImageFormats}</option>
                 <option value="allcomplexformats">${AllComplexFormats}</option>
@@ -42,7 +42,7 @@
         </div>
 
         <div class="selectContainer fldBitmapSubtitleAspectMode hide">
-            <select is="emby-select" id="selectBitmapSubtitleAspectMode" label="${LabelBitmapSubtitleAspectMode}">
+            <select is="emby-select" id="selectBitmapSubtitleAspectMode" label="${LabelBitmapSubtitleAspectMode}" aria-label="${LabelBitmapSubtitleAspectMode}">
                 <option value="stretch">${BitmapSubtitleAspectModeStretch}</option>
                 <option value="contain">${BitmapSubtitleAspectModeContain}</option>
                 <option value="cover">${BitmapSubtitleAspectModeCover}</option>
@@ -87,7 +87,7 @@
         </div>
 
         <div class="selectContainer">
-            <select is="emby-select" id="selectSubtitleStyling" label="${LabelSubtitleStyling}">
+            <select is="emby-select" id="selectSubtitleStyling" label="${LabelSubtitleStyling}" aria-label="${LabelSubtitleStyling}">
                 <option value="Auto">${Auto}</option>
                 <option value="Custom">${Custom}</option>
                 <option value="Native">${Native}</option>
@@ -98,7 +98,7 @@
         </div>
 
         <div class="selectContainer">
-            <select is="emby-select" id="selectTextSize" label="${LabelTextSize}">
+            <select is="emby-select" id="selectTextSize" label="${LabelTextSize}" aria-label="${LabelTextSize}">
                 <option value="smaller">${Smaller}</option>
                 <option value="small">${Small}</option>
                 <option value="">${Normal}</option>
@@ -109,14 +109,14 @@
         </div>
 
         <div class="selectContainer">
-            <select is="emby-select" id="selectTextWeight" label="${LabelTextWeight}">
+            <select is="emby-select" id="selectTextWeight" label="${LabelTextWeight}" aria-label="${LabelTextWeight}">
                 <option value="normal">${Normal}</option>
                 <option value="bold">${Bold}</option>
             </select>
         </div>
 
         <div class="selectContainer">
-            <select is="emby-select" id="selectFont" label="${LabelFont}">
+            <select is="emby-select" id="selectFont" label="${LabelFont}" aria-label="${LabelFont}">
                 <option value="">${Default}</option>
                 <option value="typewriter">${Typewriter}</option>
                 <option value="print">${Print}</option>
@@ -128,15 +128,15 @@
         </div>
 
         <div class="inputContainer hide">
-            <input is="emby-input" id="inputTextBackground" label="${LabelTextBackgroundColor}" type="text" />
+            <input is="emby-input" id="inputTextBackground" label="${LabelTextBackgroundColor}" aria-label="${LabelTextBackgroundColor}" type="text" />
         </div>
 
         <div class="selectContainer">
-            <input is="emby-input" id="inputTextColor" label="${LabelTextColor}" type="color" />
+            <input is="emby-input" id="inputTextColor" label="${LabelTextColor}" aria-label="${LabelTextColor}" type="color" />
         </div>
 
         <div class="selectContainer hide">
-            <select is="emby-select" id="selectTextColor" label="${LabelTextColor}">
+            <select is="emby-select" id="selectTextColor" label="${LabelTextColor}" aria-label="${LabelTextColor}">
                 <option value="#ffffff">${SubtitleWhite}</option>
                 <option value="#d3d3d3">${SubtitleLightGray}</option>
                 <option value="#808080">${SubtitleGray}</option>
@@ -151,7 +151,7 @@
         </div>
 
         <div class="selectContainer">
-            <select is="emby-select" id="selectDropShadow" label="${LabelDropShadow}">
+            <select is="emby-select" id="selectDropShadow" label="${LabelDropShadow}" aria-label="${LabelDropShadow}">
                 <option value="none">${None}</option>
                 <option value="raised">${Raised}</option>
                 <option value="depressed">${Depressed}</option>
@@ -162,7 +162,7 @@
 
         <div class="sliderContainer-settings">
             <div class="sliderContainer">
-                <input is="emby-slider" id="sliderVerticalPosition" label="${LabelSubtitleVerticalPosition}" type="range" min="-16" max="16" />
+                <input is="emby-slider" id="sliderVerticalPosition" label="${LabelSubtitleVerticalPosition}" aria-label="${LabelSubtitleVerticalPosition}" type="range" min="-16" max="16" />
             </div>
             <div class="fieldDescription">${SubtitleVerticalPositionHelp}</div>
         </div>

@@ -8,10 +8,10 @@
 </div>
 
 <div class="selectContainer fldMetadataLanguage hide">
-    <select is="emby-select" id="selectLanguage" label="${LabelMetadataDownloadLanguage}"></select>
+    <select is="emby-select" id="selectLanguage" label="${LabelMetadataDownloadLanguage}" aria-label="${LabelMetadataDownloadLanguage}"></select>
 </div>
 <div class="selectContainer fldMetadataCountry hide">
-    <select is="emby-select" id="selectCountry" label="${LabelCountry}"></select>
+    <select is="emby-select" id="selectCountry" label="${LabelCountry}" aria-label="${LabelCountry}"></select>
 </div>
 <div class="checkboxContainer checkboxContainer-withDescription chkEnablePhotosContainer">
     <label>
@@ -22,7 +22,7 @@
 </div>
 
 <div class="inputContainer fldSeasonZeroDisplayName hide advanced">
-    <input is="emby-input" type="text" id="txtSeasonZeroName" label="${LabelSpecialSeasonsDisplayName}" value="Specials" required />
+    <input is="emby-input" type="text" id="txtSeasonZeroName" label="${LabelSpecialSeasonsDisplayName}" aria-label="${LabelSpecialSeasonsDisplayName}" value="Specials" required />
 </div>
 <div class="checkboxContainer checkboxContainer-withDescription chkEnableEmbeddedTitlesContainer hide advanced">
     <label>
@@ -46,7 +46,7 @@
     <div class="fieldDescription checkboxFieldDescription">${PreferEmbeddedEpisodeInfosOverFileNamesHelp}</div>
 </div>
 <div class="selectContainer fldAllowEmbeddedSubtitlesContainer hide advanced" style="margin: 2em 0;">
-    <select is="emby-select" id="selectAllowEmbeddedSubtitles" label="${AllowEmbeddedSubtitles}">
+    <select is="emby-select" id="selectAllowEmbeddedSubtitles" label="${AllowEmbeddedSubtitles}" aria-label="${AllowEmbeddedSubtitles}">
         <option value="AllowAll">${AllowEmbeddedSubtitlesAllowAllOption}</option>
         <option value="AllowText">${AllowEmbeddedSubtitlesAllowTextOption}</option>
         <option value="AllowImage">${AllowEmbeddedSubtitlesAllowImageOption}</option>
@@ -86,7 +86,7 @@
 </div>
 
 <div class="selectContainer fldAutoRefreshInterval hide advanced" style="margin: 2em 0;">
-    <select is="emby-select" id="selectAutoRefreshInterval" label="${LabelAutomaticallyRefreshInternetMetadataEvery}"></select>
+    <select is="emby-select" id="selectAutoRefreshInterval" label="${LabelAutomaticallyRefreshInternetMetadataEvery}" aria-label="${LabelAutomaticallyRefreshInternetMetadataEvery}"></select>
     <div class="fieldDescription">${MessageEnablingOptionLongerScans}</div>
 </div>
 
@@ -243,11 +243,11 @@
         <div class="fieldDescription checkboxFieldDescription">${UseCustomTagDelimitersHelp}</div>
     </div>
     <div class="inputContainer">
-        <input type="text" is="emby-input" id="customTagDelimitersInput" label="${LabelCustomTagDelimiters}" value="/|;\"/>
+        <input type="text" is="emby-input" id="customTagDelimitersInput" label="${LabelCustomTagDelimiters}" aria-label="${LabelCustomTagDelimiters}" value="/|;\"/>
         <div class="fieldDescription">${LabelCustomTagDelimitersHelp}</div>
     </div>
     <div class="inputContainer">
-        <textarea is="emby-textarea" id="tagDelimiterWhitelist" label="${LabelDelimiterWhitelist}" class="textarea-mono" style="resize: none;min-height:2.5em"></textarea>
+        <textarea is="emby-textarea" id="tagDelimiterWhitelist" label="${LabelDelimiterWhitelist}" aria-label="${LabelDelimiterWhitelist}" class="textarea-mono" style="resize: none;min-height:2.5em"></textarea>
         <div class="fieldDescription">${LabelDelimiterWhitelistHelp}</div>
     </div>
 </div>

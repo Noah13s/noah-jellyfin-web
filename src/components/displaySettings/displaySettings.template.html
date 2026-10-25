@@ -4,7 +4,7 @@
     </h2>
 
     <div class="selectContainer languageSection hide">
-        <select id="selectLanguage" is="emby-select" label="${LabelDisplayLanguage}">
+        <select id="selectLanguage" is="emby-select" label="${LabelDisplayLanguage}" aria-label="${LabelDisplayLanguage}">
             <option value="">${Auto}</option>
             <option value="af">Afrikaans</option>
             <option value="ar">العربية</option>
@@ -87,7 +87,7 @@
     </div>
 
     <div class="selectContainer fldDateTimeLocale hide">
-        <select is="emby-select" class="selectDateTimeLocale" label="${LabelDateTimeLocale}">
+        <select is="emby-select" class="selectDateTimeLocale" label="${LabelDateTimeLocale}" aria-label="${LabelDateTimeLocale}">
             <option value="">${Auto}</option>
             <option value="af">Afrikaans</option>
             <option value="ar">العربية</option>
@@ -167,7 +167,7 @@
     </h2>
 
     <div class="selectContainer fldDisplayMode hide">
-        <select is="emby-select" class="selectLayout" label="${LabelDisplayMode}">
+        <select is="emby-select" class="selectLayout" label="${LabelDisplayMode}" aria-label="${LabelDisplayMode}">
             <option value="">${Auto}</option>
             <option value="desktop-legacy">${Desktop}</option>
             <option value="mobile-legacy">${Mobile}</option>
@@ -178,7 +178,7 @@
     </div>
 
     <div class="selectContainer">
-        <select id="selectTheme" is="emby-select" label="${LabelTheme}"></select>
+        <select id="selectTheme" is="emby-select" label="${LabelTheme}" aria-label="${LabelTheme}"></select>
     </div>
 
     <div class="checkboxContainer checkboxContainer-withDescription">
@@ -190,31 +190,31 @@
     </div>
 
     <div class="inputContainer customCssContainer">
-        <textarea is="emby-textarea" id="txtLocalCustomCss" label="${LabelCustomCss}" class="textarea-mono"></textarea>
+        <textarea is="emby-textarea" id="txtLocalCustomCss" label="${LabelCustomCss}" aria-label="${LabelCustomCss}" class="textarea-mono"></textarea>
         <div class="fieldDescription">${LabelLocalCustomCss}</div>
     </div>
 
     <div class="selectContainer selectDashboardThemeContainer hide">
-        <select id="selectDashboardTheme" is="emby-select" label="${LabelDashboardTheme}"></select>
+        <select id="selectDashboardTheme" is="emby-select" label="${LabelDashboardTheme}" aria-label="${LabelDashboardTheme}"></select>
     </div>
 
     <div class="selectContainer hide selectScreensaverContainer">
-        <select is="emby-select" class="selectScreensaver" label="${LabelScreensaver}"></select>
+        <select is="emby-select" class="selectScreensaver" label="${LabelScreensaver}" aria-label="${LabelScreensaver}"></select>
     </div>
 
     <div class="inputContainer hide txtScreensaverTimeContainer inputContainer-withDescription">
         <input is="emby-input" type="number" id="txtScreensaverTime" pattern="[0-9]*" required="required" min="5" max="86400" step="1"
-            label="${LabelScreensaverTime}" />
+            label="${LabelScreensaverTime}" aria-label="${LabelScreensaverTime}" />
         <div class="fieldDescription">${LabelScreensaverTimeHelp}</div>
     </div>
 
     <div class="inputContainer hide txtBackdropScreensaverIntervalContainer inputContainer-withDescription">
-        <input is="emby-input" type="number" id="txtBackdropScreensaverInterval" pattern="[0-9]*" required="required" min="1" max="3600" step="1" label="${LabelBackdropScreensaverInterval}" />
+        <input is="emby-input" type="number" id="txtBackdropScreensaverInterval" pattern="[0-9]*" required="required" min="1" max="3600" step="1" label="${LabelBackdropScreensaverInterval}" aria-label="${LabelBackdropScreensaverInterval}" />
         <div class="fieldDescription">${LabelBackdropScreensaverIntervalHelp}</div>
     </div>
 
     <div class="inputContainer hide txtSlideshowIntervalContainer inputContainer-withDescription">
-        <input is="emby-input" type="number" id="txtSlideshowInterval" pattern="[0-9]*" required="required" min="1" max="3600" step="1" label="${LabelSlideshowInterval}" />
+        <input is="emby-input" type="number" id="txtSlideshowInterval" pattern="[0-9]*" required="required" min="1" max="3600" step="1" label="${LabelSlideshowInterval}" aria-label="${LabelSlideshowInterval}" />
         <div class="fieldDescription">${LabelSlideshowIntervalHelp}</div>
     </div>
 
@@ -239,7 +239,7 @@
     </h2>
 
     <div class="inputContainer inputContainer-withDescription">
-        <input is="emby-input" type="number" id="txtLibraryPageSize" pattern="[0-9]*" required="required" min="0" max="1000" step="1" label="${LabelLibraryPageSize}" />
+        <input is="emby-input" type="number" id="txtLibraryPageSize" pattern="[0-9]*" required="required" min="0" max="1000" step="1" label="${LabelLibraryPageSize}" aria-label="${LabelLibraryPageSize}" />
         <div class="fieldDescription">${LabelLibraryPageSizeHelp}</div>
     </div>
 
@@ -280,7 +280,7 @@
     </h2>
 
     <div class="inputContainer inputContainer-withDescription">
-        <input is="emby-input" type="number" id="txtMaxDaysForNextUp" pattern="[0-9]*" required="required" min="0" max="1000" step="1" label="${LabelMaxDaysForNextUp}" />
+        <input is="emby-input" type="number" id="txtMaxDaysForNextUp" pattern="[0-9]*" required="required" min="0" max="1000" step="1" label="${LabelMaxDaysForNextUp}" aria-label="${LabelMaxDaysForNextUp}" />
         <div class="fieldDescription">${LabelMaxDaysForNextUpHelp}</div>
     </div>
 

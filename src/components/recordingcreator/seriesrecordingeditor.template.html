@@ -10,7 +10,7 @@
 
         <form style="max-width: none;">
             <div class="selectContainer">
-                <select is="emby-select" class="selectShowType" label="${LabelRecord}">
+                <select is="emby-select" class="selectShowType" label="${LabelRecord}" aria-label="${LabelRecord}">
                     <option value="new">${NewEpisodesOnly}</option>
                     <option value="all">${AllEpisodes}</option>
                 </select>
@@ -25,27 +25,27 @@
             </div>
 
             <div class="selectContainer">
-                <select is="emby-select" class="selectChannels" label="${LabelChannels}">
+                <select is="emby-select" class="selectChannels" label="${LabelChannels}" aria-label="${LabelChannels}">
                     <option class="optionChannelOnly" value="one">${OneChannel}</option>
                     <option value="all">${AllChannels}</option>
                 </select>
             </div>
 
             <div class="selectContainer">
-                <select is="emby-select" class="selectAirTime" label="${LabelAirTime}">
+                <select is="emby-select" class="selectAirTime" label="${LabelAirTime}" aria-label="${LabelAirTime}">
                     <option class="optionAroundTime" value="original"></option>
                     <option value="any">${Anytime}</option>
                 </select>
             </div>
 
             <div class="selectContainer">
-                <select is="emby-select" class="selectKeepUpTo" label="${LabelKeepUpTo}"></select>
+                <select is="emby-select" class="selectKeepUpTo" label="${LabelKeepUpTo}" aria-label="${LabelKeepUpTo}"></select>
             </div>
 
             <div class="inputContainer">
                 <div class="flex align-items-center">
                     <div class="flex-grow">
-                        <input is="emby-input" type="number" id="txtPrePaddingMinutes" pattern="[0-9]*" required="required" min="0" step="1" label="${LabelStartWhenPossible}" />
+                        <input is="emby-input" type="number" id="txtPrePaddingMinutes" pattern="[0-9]*" required="required" min="0" step="1" label="${LabelStartWhenPossible}" aria-label="${LabelStartWhenPossible}" />
                     </div>
                     <div class="fieldDescription" style="margin-left:.5em;font-size:90%;margin-top:1.3em;">
                         ${MinutesBefore}
@@ -55,7 +55,7 @@
             <div class="inputContainer">
                 <div class="flex align-items-center">
                     <div class="flex-grow">
-                        <input is="emby-input" type="number" id="txtPostPaddingMinutes" pattern="[0-9]*" required="required" min="0" step="1" label="${LabelStopWhenPossible}" />
+                        <input is="emby-input" type="number" id="txtPostPaddingMinutes" pattern="[0-9]*" required="required" min="0" step="1" label="${LabelStopWhenPossible}" aria-label="${LabelStopWhenPossible}" />
                     </div>
                     <div class="fieldDescription" style="margin-left:.5em;font-size:90%;margin-top:1.3em;">
                         ${MinutesAfter}

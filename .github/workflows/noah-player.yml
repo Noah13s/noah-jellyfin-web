@@ -19,7 +19,7 @@ jobs:
           node-version: 24
           cache: npm
       # Upstream's locked classlist.js tarball is a remote package with integrity.
-      - run: npm ci --allow-remote=all --no-audit --no-fund
+      - run: npm ci --ignore-scripts --allow-remote=all --no-audit --no-fund
       - run: python3 -m unittest discover -s scripts -p test_unused.py
       - run: node scripts/verify-noah-source.mjs
       - run: node node_modules/eslint/bin/eslint.js --no-inline-config --config scripts/noah-lint.config.mjs 'src/plugins/noah/**/*.js'
