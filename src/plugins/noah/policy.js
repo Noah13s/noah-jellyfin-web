@@ -19,7 +19,10 @@ export const hooks = {
     current: () => true,
     close: () => undefined
 };
-export let currentVideo;
+let currentVideo;
+export function getVideo() {
+    return currentVideo;
+}
 export function setVideo(video) {
     currentVideo = video;
 }

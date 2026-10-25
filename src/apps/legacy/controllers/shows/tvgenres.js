@@ -136,7 +136,7 @@ export default function (view, params, tabContent) {
     function reloadItems(context, promise) {
         const query = getQuery();
         promise.then(function (result) {
-            const elem = context.querySelector('#items');
+            const elem = context.querySelector('.genreSections');
             let html = '';
             const items = result.Items;
 

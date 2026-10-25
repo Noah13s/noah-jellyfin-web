@@ -54,7 +54,7 @@ export default function (view, params, tabContent) {
                 allowBottomPadding: true,
                 cardLayout: false
             });
-            const elem = context.querySelector('#items');
+            const elem = context.querySelector('.itemsContainer');
             elem.innerHTML = html;
             imageLoader.lazyChildren(elem);
             userSettings.saveQuerySettings(getSavedQueryKey(), query);

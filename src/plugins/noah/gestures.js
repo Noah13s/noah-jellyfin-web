@@ -1,4 +1,4 @@
-import { currentVideo } from './policy';
+import { getVideo } from './policy';
 /* Accumulated seeking for Jellyfin Web; brightness gesture reserved for an APK. */
 (() => {
   if (window.__seerrPlayerControls === 4) return;
@@ -23,7 +23,7 @@ import { currentVideo } from './policy';
   } catch { /* Private browsing may disable storage. */ }
 
   const activeVideo = () => {
-    const video = currentVideo;
+    const video = getVideo();
     return video && video.getBoundingClientRect().width >= 100 ? video : null;
   };
   const isControl = (target) => target instanceof Element && Boolean(target.closest(CONTROL_SELECTOR));

@@ -34,7 +34,7 @@ function getPromise(context, params) {
 
 function reloadItems(context, params, promise) {
     promise.then(function (result) {
-        const elem = context.querySelector('#items');
+        const elem = context.querySelector('.itemsContainer');
         cardBuilder.buildCards(result.Items, {
             itemsContainer: elem,
             shape: 'backdrop',

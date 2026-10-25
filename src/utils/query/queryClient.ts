@@ -13,10 +13,6 @@ const MAX_STALENESS = 60 * 1000;
 /** Maximum number of retries for failed queries. */
 const MAX_RETRIES = 2;
 
-// NOTE: queryClient needs to be defined before the QueryCache so that it can be used in the onError callback.
-// eslint-disable-next-line prefer-const
-export let queryClient: QueryClient;
-
 /** Query cache for handling query errors and side effects. */
 const queryCache = new QueryCache({
     onError: (error, { queryKey }) => {
@@ -38,7 +34,8 @@ const queryCache = new QueryCache({
     }
 });
 
-queryClient = new QueryClient({
+// Cache callbacks run when queries execute, after this client is initialized.
+export const queryClient = new QueryClient({
     queryCache,
     defaultOptions: {
         mutations: {

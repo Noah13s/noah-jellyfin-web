@@ -1,40 +1,40 @@
-import os
-import subprocess
+"""Report literal translation keys with no source references.
+
+Dynamic translation keys still require manual review. Translation content is
+data, including quotes and regex metacharacters; no shell is used.
+"""
 import json
+import re
+from pathlib import Path
 
-# load all keys in the source language
-# check entire codebase for usages
-# print unused keys to a text file
-# TODO: dynamic string usages cause false positives
 
-cwd = os.getcwd()
-langdir = cwd + '/../src/strings'
-langlst = []
-langlst.append('en-us.json')
+def source_texts(source: Path):
+    """Read executable templates once, excluding translation dictionaries."""
+    strings = (source / 'strings').resolve()
+    for path in source.rglob('*'):
+        if path.suffix in {'.js', '.jsx', '.ts', '.tsx', '.html'} and not path.resolve().is_relative_to(strings):
+            yield path.read_text(encoding='utf-8')
 
-# unused keys
-dep = []
 
-def grep(key):
-    command = 'grep -r -E "(\\\"|\'|\{)%s(\\\"|\'|\})" --include=\*.{js,html} --exclude-dir=../src/strings ../src' % key
-    p = subprocess.Popen(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-    output = p.stdout.readlines()
-    if output:
-        print('DONE: ' + key)
-        return True
-    print('UNUSED: ' + key)
-    dep.append(key)
-    return False
+def unused_keys(keys, texts):
+    texts = tuple(texts)
+    return [key for key in keys if not any(
+        re.search(r'''["'{]''' + re.escape(key) + r'''["'}]''', text)
+        for text in texts
+    )]
 
-for lang in langlst:
-    with open(langdir + '/' + lang) as f:
-        langjson = json.load(f)
-        for key in langjson:
-            grep(key)
 
-print(dep)
-print('LENGTH: ' + str(len(dep)))
-with open('unused.txt', 'w') as out:
-    for item in dep:
-        out.write(item + '\n')
-    out.close()
+def main():
+    source = Path(__file__).resolve().parents[1] / 'src'
+    keys = json.loads((source / 'strings' / 'en-us.json').read_text(encoding='utf-8'))
+    unused = unused_keys(keys, source_texts(source))
+    unused_set = set(unused)
+    for key in keys:
+        print(('UNUSED: ' if key in unused_set else 'DONE: ') + key)
+    print(unused)
+    print('LENGTH: ' + str(len(unused)))
+    Path('unused.txt').write_text(''.join(key + '\n' for key in unused), encoding='utf-8')
+
+
+if __name__ == '__main__':
+    main()
