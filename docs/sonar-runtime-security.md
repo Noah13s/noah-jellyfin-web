@@ -2,7 +2,9 @@
 
 Local implementation batch, 26 October 2026; starting Sonar snapshot: 259 open
 findings. See the adjacent finding ledger for targets requiring fresh analysis.
-No online issue dispositions have been changed.
+Two new `javascript:S1523` findings in the Node contract were reviewed as false
+positives with comments on their exact fixed-source data flow. No rule or quality
+gate condition was disabled.
 
 ## Server discovery
 
@@ -40,6 +42,13 @@ separate Cast report. The 53 Cast contracts measure 96.65% line coverage for
 their adapter. These scopes must not be presented as one interchangeable
 percentage. Coverage demonstrates executed code, not absence of defects or a
 successful physical TV/network test.
+
+The two VM execution sites read only the constant repository-owned
+`src/plugins/noah/casting.js` relative to `__dirname`. No CLI, URL, receiver or
+user text becomes executable source; the VM context is a fake browser/SDK owned
+by the test. Adding `{filename}` changes coverage attribution, not which code is
+trusted. Both individual Sonar dispositions are recorded in the ledger; the
+production dynamic-execution rule remains enabled.
 
 Automatic Sonar analysis cannot import these reports. The new `sonar` CI job is
 disabled until repository variable `SONAR_CI_ENABLED=true`, a project-scoped

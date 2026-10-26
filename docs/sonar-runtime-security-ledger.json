@@ -1,6 +1,22 @@
 {
   "snapshotDate": "2026-10-26",
   "state": "local-review-targets-not-confirmed-closures",
+  "reviewedFalsePositives": [
+    {
+      "key": "AaF3a85Qgx7MgE2TjCuE",
+      "rule": "javascript:S1523",
+      "component": "test/contracts/casting.cjs",
+      "line": 43,
+      "reason": "Node contract executes only fixed repository-owned source with a test-owned fake browser/SDK. No user-controlled code. Individual review comment saved in Sonar; rule remains enabled."
+    },
+    {
+      "key": "AaF3a85Qgx7MgE2TjCuF",
+      "rule": "javascript:S1523",
+      "component": "test/contracts/casting.cjs",
+      "line": 264,
+      "reason": "Contract reloads the same constant source path; adding filename only attributes VM coverage. No untrusted text is executed. Individual review comment saved in Sonar; rule remains enabled."
+    }
+  ],
   "note": "Fresh analysis of an approved commit must reconcile every issue. CLI and configured URL boundaries may need contextual review; moving code is not proof of closure.",
   "targets": [
     {
