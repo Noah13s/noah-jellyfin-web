@@ -1,0 +1,3 @@
+# CI coverage reporter only; not an application dependency.
+coverage==7.17.0 \
+    --hash=sha256:bac487dce0d2aff28ddf1a533a916f771416eee0e493960f611e49037b878e9d

@@ -10,6 +10,8 @@ permissions:
   contents: read
 jobs:
   check-and-build:
+    env:
+      COVERAGE_FILE: coverage/.coverage
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -20,7 +22,13 @@ jobs:
           cache: npm
       # Upstream's locked classlist.js tarball is a remote package with integrity.
       - run: npm ci --ignore-scripts --allow-remote=all --no-audit --no-fund
-      - run: python3 -m unittest discover -s scripts -p test_unused.py
+      - name: Collect Python audit-tool coverage
+        run: |
+          python3 -m venv "$RUNNER_TEMP/python-tests"
+          "$RUNNER_TEMP/python-tests/bin/python" -m pip install --only-binary=:all: --require-hashes -r scripts/requirements-test.txt
+          mkdir -p coverage
+          "$RUNNER_TEMP/python-tests/bin/python" -m coverage run --rcfile=.coveragerc -m unittest discover -s scripts -p test_unused.py
+          "$RUNNER_TEMP/python-tests/bin/python" -m coverage xml --rcfile=.coveragerc -o coverage/python.xml
       - run: node scripts/verify-noah-source.mjs
       - run: node node_modules/eslint/bin/eslint.js --no-inline-config --config scripts/noah-lint.config.mjs 'src/plugins/noah/**/*.js'
       - run: mkdir -p coverage
@@ -45,6 +53,7 @@ jobs:
             test-results.xml
             coverage/*.info
             coverage/coverage-summary.json
+            coverage/python.xml
           if-no-files-found: ignore
           retention-days: 14
   sonar:
@@ -65,6 +74,7 @@ jobs:
         run: |
           test -n "$SONAR_TOKEN"
           test -s coverage/lcov.info
+          test -s coverage/python.xml
       - uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6.0.0
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
