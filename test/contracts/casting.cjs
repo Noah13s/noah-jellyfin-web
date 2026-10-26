@@ -39,7 +39,8 @@ function setup({cancel=false,failPlay=false,storage,userId='profile5'}={}) {
   }};
   if(storage) env.localStorage={getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)};
   parent.setTimeout=(...args)=>env.setTimeout(...args);parent.clearTimeout=(...args)=>env.clearTimeout(...args);
-  env.window=env;vm.createContext(env);vm.runInContext(fs.readFileSync(path.join(__dirname,'../../src/plugins/noah/casting.js'),'utf8'),env);
+  const filename=path.join(__dirname,'../../src/plugins/noah/casting.js');
+  env.window=env;vm.createContext(env);vm.runInContext(fs.readFileSync(filename,'utf8'),env,{filename});
   env.SeerrCasting({playbackManager:manager,ServerConnections:{currentApiClient:()=>api}});
   return {bridge:env.__seerrCast,calls,manager,cast,listeners,env,item};
 }
@@ -259,7 +260,8 @@ test('embedded Cast initialization is single-owner and passes the parent page co
   assert.equal(lifecycle.skipInitialization(p),false);assert.equal(lifecycle.skipInitialization(p),true);
   p.isInitialized=true;assert.equal(lifecycle.skipInitialization(p),true);
   lifecycle.initialized();assert.equal(context,env.parent);
-  env.location.search='';vm.runInContext(fs.readFileSync(path.join(__dirname,'../../src/plugins/noah/casting.js'),'utf8'),env);
+  const filename=path.join(__dirname,'../../src/plugins/noah/casting.js');
+  env.location.search='';vm.runInContext(fs.readFileSync(filename,'utf8'),env,{filename});
   assert.equal(env.SeerrCastLifecycle.skipInitialization({}),true);
 });
 test('native session listeners are deduplicated and obsolete session callbacks cannot disconnect a replacement',()=>{

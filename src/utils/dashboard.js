@@ -17,6 +17,7 @@ import dialogHelper from '../components/dialogHelper/dialogHelper';
 import itemIdentifier from '../components/itemidentifier/itemidentifier';
 import { getLocationSearch } from './url.ts';
 import { queryClient } from './query/queryClient';
+import { discoverServer } from './serverDiscovery';
 
 export function getCurrentUser() {
     return window.ApiClient.getCurrentUser(false);
@@ -31,7 +32,7 @@ export async function serverAddress() {
     }
 
     // Use servers specified in config.json
-    const urls = await webSettings.getServers();
+    const urls = [...await webSettings.getServers()];
 
     if (urls.length === 0) {
         // Otherwise use computed base URL
@@ -52,39 +53,7 @@ export async function serverAddress() {
         urls.push(url);
     }
 
-    console.debug('URL candidates:', urls);
-
-    const promises = urls.map(url => {
-        return fetch(`${url}/System/Info/Public`, { cache: 'no-cache' })
-            .then(async resp => {
-                if (!resp.ok) {
-                    return;
-                }
-
-                let config;
-                try {
-                    config = await resp.json();
-                } catch {
-                    return;
-                }
-
-                return {
-                    url,
-                    config
-                };
-            }).catch(error => {
-                console.error(error);
-            });
-    });
-
-    return Promise.all(promises).then(responses => {
-        return responses.filter(obj => obj?.config);
-    }).then(configs => {
-        const selection = configs.find(obj => !obj.config.StartupWizardCompleted) || configs[0];
-        return selection?.url;
-    }).catch(error => {
-        console.error(error);
-    });
+    return discoverServer(urls);
 }
 
 export function getCurrentUserId() {

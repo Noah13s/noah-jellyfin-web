@@ -23,9 +23,10 @@ jobs:
       - run: python3 -m unittest discover -s scripts -p test_unused.py
       - run: node scripts/verify-noah-source.mjs
       - run: node node_modules/eslint/bin/eslint.js --no-inline-config --config scripts/noah-lint.config.mjs 'src/plugins/noah/**/*.js'
-      - run: node --test test/contracts/*.cjs
+      - run: mkdir -p coverage
+      - run: node --experimental-test-coverage --test-coverage-include='**/src/plugins/noah/**' --test --test-reporter=spec --test-reporter=lcov --test-reporter-destination=stdout --test-reporter-destination=coverage/contracts-lcov.info test/contracts/*.cjs
       - run: npm run build:check
-      - run: npm test -- --reporter=default --reporter=junit --outputFile.junit=test-results.xml
+      - run: npm test -- --coverage --reporter=default --reporter=junit --outputFile.junit=test-results.xml
       - run: npm run build:production
         env:
           NODE_OPTIONS: --max-old-space-size=4096
@@ -40,6 +41,30 @@ jobs:
         if: always()
         with:
           name: noah-web-tests-${{ github.sha }}
-          path: test-results.xml
+          path: |
+            test-results.xml
+            coverage/*.info
+            coverage/coverage-summary.json
           if-no-files-found: ignore
           retention-days: 14
+  sonar:
+    if: vars.SONAR_CI_ENABLED == 'true' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository)
+    needs: check-and-build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+        with:
+          name: noah-web-tests-${{ github.sha }}
+      - name: Require coverage and a configured analysis token
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: |
+          test -n "$SONAR_TOKEN"
+          test -s coverage/lcov.info
+      - uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6.0.0
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

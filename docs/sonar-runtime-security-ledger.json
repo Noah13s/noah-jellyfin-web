@@ -1,0 +1,28 @@
+{
+  "snapshotDate": "2026-10-26",
+  "state": "local-review-targets-not-confirmed-closures",
+  "note": "Fresh analysis of an approved commit must reconcile every issue. CLI and configured URL boundaries may need contextual review; moving code is not proof of closure.",
+  "targets": [
+    {
+      "key": "AaFoJZa0OZDKsE3tmJrT",
+      "rule": "javascript:S6671",
+      "component": "Noah13s_noah-jellyfin-web:src/lib/jellyfin-apiclient/connectionManager.js",
+      "line": 654,
+      "message": "Expected the Promise rejection reason to be an Error."
+    },
+    {
+      "key": "AaFoJZa0OZDKsE3tmJrU",
+      "rule": "javascript:S6671",
+      "component": "Noah13s_noah-jellyfin-web:src/lib/jellyfin-apiclient/connectionManager.js",
+      "line": 662,
+      "message": "Expected the Promise rejection reason to be an Error."
+    },
+    {
+      "key": "AaFoJZbmOZDKsE3tmJrc",
+      "rule": "jssecurity:S8476",
+      "component": "Noah13s_noah-jellyfin-web:src/utils/dashboard.js",
+      "line": 58,
+      "message": "Client-Side Request Forgery via unsanitized user input"
+    }
+  ]
+}

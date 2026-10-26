@@ -12,6 +12,7 @@
 8. [Testing](testing.md): complete CI gates, Cast contracts and verification boundaries.
 9. [Sonar remediation](sonar-remediation.md): priority-one changes, finding ledger and verification limits.
 10. [Sonar batch two](sonar-remediation-2.md): accessible control names and script-disabled installs.
+11. [Runtime security and coverage](sonar-runtime-security.md): discovery deadlines, connection errors and CI coverage migration.
 
 ## Authoritative records
 
