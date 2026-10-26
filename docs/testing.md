@@ -41,14 +41,18 @@ Bluetooth and TCL frame pacing still require targeted device validation.
 
 ## SonarQube Cloud
 
-The prepared opt-in `sonar` job imports browser and Node-contract LCOV after the
-build. See [coverage scope and migration](sonar-runtime-security.md) before
-enabling it. It does not run while `SONAR_CI_ENABLED` is unset/false.
-
-`SonarCloud Code Analysis` is an additional PR check. Automatic analysis does
-not run Vitest/Cast tests or import their coverage. A zero/missing coverage value
-therefore does not measure this suite; the test artifacts above are the execution
-evidence. See [Sonar's coverage documentation](https://docs.sonarsource.com/sonarqube-cloud/analyzing-source-code/test-coverage/overview/).
-Keep this check and `check-and-build` green for the same commit before merging.
+CI analysis is enabled on this fork; Automatic Analysis is disabled. The `sonar`
+job imports browser/Node LCOV and Python Cobertura XML after the build. See
+[coverage scope and migration](sonar-runtime-security.md) for setup/recovery.
+Reports are required and tied to the current commit. A successful import does
+not imply that the unchanged 80% new-code coverage requirement passes.
+Keep `sonar` and `check-and-build` green for the same commit before merging.
 PR updates run once, instead of starting duplicate branch-push builds. Use manual
 workflow dispatch when testing a branch without a pull request.
+
+Python audit tests run in a disposable venv using the hash-locked
+`scripts/requirements-test.txt` reporter. `.coveragerc` retains unexecuted Python
+tools as uncovered rather than counting only imported files. The report is
+`coverage/python.xml`; Vitest preserves it while generating JavaScript coverage.
+The translation audit command test exercises report output in a temporary fake
+checkout. It does not modify this checkout's translations.

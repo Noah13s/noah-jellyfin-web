@@ -22,3 +22,5 @@ config.json
 # environment related
 .envrc
 __pycache__/
+.coverage
+.coverage.*
