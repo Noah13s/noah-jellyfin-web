@@ -651,7 +651,7 @@ export default class ConnectionManager {
             return self.connectToServer(server, options).then((result) => {
                 // connectToServer never rejects, but resolves with State=ConnectionState.Unavailable
                 if (result.State === ConnectionState.Unavailable) {
-                    return Promise.reject();
+                    throw new Error('Server is unavailable');
                 }
                 return result;
             });
@@ -659,7 +659,7 @@ export default class ConnectionManager {
 
         self.connectToAddress = function (address, options) {
             if (!address) {
-                return Promise.reject();
+                return Promise.reject(new TypeError('A server address is required'));
             }
 
             address = normalizeAddress(address);

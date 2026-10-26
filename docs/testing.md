@@ -3,11 +3,11 @@
 Run from the repository root with the Node version in the workflow:
 
 ```sh
-npm ci --allow-remote=all --no-audit --no-fund
+npm ci --ignore-scripts --allow-remote=all --no-audit --no-fund
 node scripts/verify-noah-source.mjs
 node node_modules/eslint/bin/eslint.js --no-inline-config --config scripts/noah-lint.config.mjs 'src/plugins/noah/**/*.js'
 npm run build:check
-npm test
+npm test -- --coverage
 node --test test/contracts/*.cjs
 npm run build:production
 ```
@@ -40,6 +40,10 @@ by the private Noah Stream integration repository. Physical Cast, Safari, HDR,
 Bluetooth and TCL frame pacing still require targeted device validation.
 
 ## SonarQube Cloud
+
+The prepared opt-in `sonar` job imports browser and Node-contract LCOV after the
+build. See [coverage scope and migration](sonar-runtime-security.md) before
+enabling it. It does not run while `SONAR_CI_ENABLED` is unset/false.
 
 `SonarCloud Code Analysis` is an additional PR check. Automatic analysis does
 not run Vitest/Cast tests or import their coverage. A zero/missing coverage value
