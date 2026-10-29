@@ -20,6 +20,11 @@ describe('passive real-media transfer estimates', () => {
             expect(mediaTransfer({ ...entry, ...patch }, origin, id)).toBeUndefined();
         }
     });
+    it('matches Jellyfin segment URLs containing a hyphenated item UUID', () => {
+        const uuid = `${id.slice(0, 8)}-${id.slice(8, 12)}-${id.slice(12, 16)}-${id.slice(16, 20)}-${id.slice(20)}`;
+        expect(mediaTransfer({ ...entry, name: `${origin}/player/videos/${uuid}/hls1/main/754.ts` }, origin, id)?.kind).toBe('segment');
+        expect(mediaTransfer({ ...entry, name: `${origin}/player/videos/${uuid.replace(/^a/, 'b')}/hls1/main/754.ts` }, origin, id)).toBeUndefined();
+    });
     it('rejects stale/legacy/one-off observations and retains a bounded safety margin', () => {
         const sample = { source: 'video-body-v2', count: 3, bps: 50000000, at: 1000 };
         expect(retainedBudget(sample, 2000)).toBe(35000000);

@@ -7,8 +7,8 @@ export function mediaTransfer(entry, origin, itemId) {
         return;
     }
     if (url.origin !== origin || !/^[a-f0-9]{32}$/i.test(itemId || '')) return;
-    const resource = /\/videos\/([a-f0-9]{32})\/(.+)$/i.exec(url.pathname);
-    if (!resource || resource[1].toLowerCase() !== itemId.toLowerCase()) return;
+    const resource = /\/videos\/([a-f0-9]{32}|[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})\/(.+)$/i.exec(url.pathname);
+    if (!resource || resource[1].replace(/-/g, '').toLowerCase() !== itemId.toLowerCase()) return;
     const segment = /^(?:hls1\/[^/]+\/\d+\.(?:mp4|ts)|[^/]+\.ts)$/i.test(resource[2]);
     const direct = /^stream(?:\.(?:mkv|mp4|webm|mov|m4v))?$/i.test(resource[2]);
     // Only completed, successful range transfers qualify for original files.

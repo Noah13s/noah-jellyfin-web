@@ -30,6 +30,13 @@ function canPlayNativeHls() {
 }
 
 export function enableHlsJsPlayerForCodecs(mediaSource, mediaType) {
+    // Embedded desktop Safari can use MSE for H.264 HLS. hls.js can request
+    // the resume segment first and expose real segment transfers to the
+    // existing passive bandwidth policy. Keep native HLS on iOS and whenever
+    // Media Source support is unavailable.
+    if (seerr.preferSafariMse(browser, mediaType, window.MediaSource)) {
+        return true;
+    }
     // Workaround for VP9 HLS support on desktop Safari
     // Force using HLS.js because desktop Safari's native HLS player does not play VP9 over HLS
     // browser.osx will return true on iPad, cannot use

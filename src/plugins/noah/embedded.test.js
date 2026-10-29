@@ -28,6 +28,7 @@ let hostParent;
 let policy;
 let clock;
 let sequence;
+let rejectOpen;
 const bridge = '12345678-1234-1234-1234-123456789012';
 function send(action) {
     window.dispatchEvent(new MessageEvent('message', { source: hostParent, origin: window.location.origin,
@@ -39,7 +40,10 @@ beforeEach(async () => {
     fixture.api.getItem.mockResolvedValue({ Id: 'a'.repeat(32), UserData: {} });
     fixture.player.prepareEmbedded.mockResolvedValue();
     fixture.manager.getPlaybackMediaSources.mockResolvedValue([]);
-    fixture.manager.play.mockResolvedValue();
+    // Native Safari playback may leave this promise pending while video plays.
+    fixture.manager.play.mockReturnValue(new Promise((_resolve, reject) => {
+        rejectOpen = reject;
+    }));
     fixture.manager.stop.mockResolvedValue();
     fixture.manager.recoverEmbeddedStream.mockResolvedValue(true);
     fixture.manager.renegotiateEmbeddedStream.mockResolvedValue(true);
@@ -65,6 +69,15 @@ afterEach(async () => {
     vi.restoreAllMocks();
 });
 describe('embedded recovery ownership', () => {
+    it('acknowledges play and accepts controls even when the native open remains pending', async () => {
+        await vi.waitFor(() => expect(hostParent.postMessage.mock.calls.some(([value]) => value.kind === 'reply' && value.id === 'command-0' && value.ok)).toBe(true));
+        send('pause');
+        await vi.waitFor(() => expect(fixture.manager.pause).toHaveBeenCalledOnce());
+    });
+    it('routes a later open failure to bounded recovery', async () => {
+        rejectOpen(new Error('network interrupted'));
+        await vi.waitFor(() => expect(fixture.manager.recoverEmbeddedStream).toHaveBeenCalledOnce());
+    });
     it('reopens an interrupted stream without stopping its encoder or renegotiating tracks', async () => {
         expect(policy.hooks.failure({ type: 'NETWORK_ERROR' }, fixture.player)).toBe(true);
         await vi.waitFor(() => expect(fixture.manager.recoverEmbeddedStream).toHaveBeenCalledTimes(1));
