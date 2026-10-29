@@ -5,6 +5,10 @@ export const embedded = window.parent !== window && parameters.get('seerrAutopla
 export const castFrame = window.parent !== window && parameters.get('seerrCast') === '1';
 export const targetId = new URLSearchParams(window.location.hash.split('?')[1] || '').get('id');
 export const local = embedded && !castFrame && /^[a-f0-9-]{16,80}$/i.test(parameters.get('seerrBridgeId') || '') && /^[a-f0-9]{32}$/i.test(targetId || '');
+export function preferSafariMse(browser, mediaType, mediaSource) {
+    return local && !compatibility && browser.safari && !browser.iOS && mediaType === 'Video'
+        && !!mediaSource?.isTypeSupported?.('video/mp4; codecs="avc1.42E01E"');
+}
 export const hooks = {
     bindVideo: () => undefined,
     captureReport: () => undefined,

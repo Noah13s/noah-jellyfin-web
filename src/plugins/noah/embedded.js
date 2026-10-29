@@ -84,9 +84,20 @@ const protocol = policy.local && /^[a-f0-9-]{16,80}$/i.test(frameId) ? createPro
     const commandAt = performance.now();
     if (['seek', 'audio', 'subtitle'].includes(action)) changingUntil = commandAt + 12000;
     switch (action) {
-        case 'play':
-            await play(payload.resumeTicks);
+        case 'play': {
+            // PlaybackManager may keep its promise pending for the lifetime of
+            // native HLS playback. Do not hold the control queue hostage to it:
+            // presentation and errors are reported independently by events.
+            const opening = play(payload.resumeTicks);
+            const ticket = generation;
+            void opening.catch(error => {
+                if (generationActive(ticket)) {
+                    const failure = classifyFailure({ type: error?.name, status: error?.status, message: error?.message });
+                    void recover(failure);
+                }
+            });
             break;
+        }
         case 'pause':
             pausedIntent = true;
             manager.pause(player);
@@ -138,11 +149,18 @@ async function play(ticks) {
     };
     policy.rememberItem(api, candidate);
     armStartDeadline();
-    await manager.play({
-        items: [candidate],
-        startPositionTicks: ticks,
-        enableRemotePlayers: false
-    });
+    try {
+        await manager.play({
+            items: [candidate],
+            startPositionTicks: ticks,
+            enableRemotePlayers: false
+        });
+        telemetry.record('nativeOpenResolved', { durationMs: performance.now() - playAt });
+    } catch (error) {
+        telemetry.record('nativeOpenFailed', { durationMs: performance.now() - playAt,
+            category: classifyFailure({ type: error?.name, status: error?.status, message: error?.message }) });
+        throw error;
+    }
 }
 async function recover(category = 'unknown') {
     if (recovering) return recovering;

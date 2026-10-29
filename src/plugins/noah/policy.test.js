@@ -15,6 +15,20 @@ beforeEach(() => {
 });
 
 describe('explicit Seerr source policies', () => {
+    it('limits the Safari MSE path to supported embedded desktop video', async () => {
+        const p = await policy();
+        const media = { isTypeSupported: vi.fn().mockReturnValue(true) };
+        expect(p.preferSafariMse({ safari: true, iOS: false }, 'Video', media)).toBe(true);
+        expect(p.preferSafariMse({ safari: true, iOS: true }, 'Video', media)).toBe(false);
+        expect(p.preferSafariMse({ safari: true, iOS: false }, 'Audio', media)).toBe(false);
+        expect(p.preferSafariMse({ safari: true, iOS: false }, 'Video', null)).toBe(false);
+        p.setCompatibility();
+        expect(p.preferSafariMse({ safari: true, iOS: false }, 'Video', media)).toBe(false);
+        media.isTypeSupported.mockReturnValue(false);
+        expect(p.preferSafariMse({ safari: true, iOS: false }, 'Video', media)).toBe(false);
+        const ordinary = await policy(false);
+        expect(ordinary.preferSafariMse({ safari: true, iOS: false }, 'Video', media)).toBe(false);
+    });
     it('selects the native video player regardless of plugin registration order', async () => {
         const p = await policy();
         const youtube = { isLocalPlayer: true, canPlayMediaType: () => true };
