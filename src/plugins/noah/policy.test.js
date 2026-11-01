@@ -15,6 +15,46 @@ beforeEach(() => {
 });
 
 describe('explicit Seerr source policies', () => {
+    it('avoids quality restarts at adequate full resolution while preserving upgrades and unknown metadata', async () => {
+        const p = await policy();
+        const item = { MediaSources: [{ MediaStreams: [{ Type: 'Video', Height: 1080 }] }] };
+        expect(p.needsResolutionUpgrade({ videoHeight: 1080 }, item, 12000000)).toBe(false);
+        expect(p.needsResolutionUpgrade({ videoHeight: 720 }, item, 4000000)).toBe(true);
+        expect(p.needsResolutionUpgrade({ videoHeight: 1080 }, item, 4000000)).toBe(true);
+        expect(p.needsResolutionUpgrade({ videoHeight: 1080 }, {}, 12000000)).toBe(true);
+    });
+    it('suppresses a redundant automatic restart but upgrades a lower-resolution stream', async () => {
+        const p = await policy();
+        let observe;
+        const OriginalObserver = window.PerformanceObserver;
+        const clock = vi.spyOn(performance, 'now').mockReturnValue(1);
+        window.PerformanceObserver = class {
+            constructor(callback) { observe = callback; }
+            observe() { /* passive */ }
+            disconnect() { /* passive */ }
+        };
+        try {
+            p.beginBudget(api);
+            p.savedBudget(api, 'Video', 0, true);
+            const video = { videoHeight: 1080, paused: false, seeking: false, buffered: { length: 1, end: () => 60 }, currentTime: 0 };
+            p.videoPlaying(video);
+            const manager = { setMaxStreamingBitrate: vi.fn(), getMaxStreamingBitrate: () => 12000000,
+                playMethod: () => 'Transcode', currentItem: () => ({ MediaStreams: [{ Type: 'Video', Height: 1080 }] }) };
+            const close = p.observeThroughput(manager, {});
+            const entry = { name: `${window.location.origin}/player/Videos/${id}/hls1/main/1.mp4`,
+                encodedBodySize: 2000000, transferSize: 2000400, requestStart: 1, responseStart: 3001, responseEnd: 3251, responseStatus: 200 };
+            clock.mockReturnValue(60000);
+            observe({ getEntries: () => [entry, entry, entry, entry] });
+            expect(manager.setMaxStreamingBitrate).not.toHaveBeenCalled();
+            video.videoHeight = 720;
+            observe({ getEntries: () => [entry] });
+            expect(manager.setMaxStreamingBitrate).toHaveBeenCalledOnce();
+            close();
+        } finally {
+            clock.mockRestore();
+            window.PerformanceObserver = OriginalObserver;
+        }
+    });
     it('limits the Safari MSE path to supported embedded desktop video', async () => {
         const p = await policy();
         const media = { isTypeSupported: vi.fn().mockReturnValue(true) };

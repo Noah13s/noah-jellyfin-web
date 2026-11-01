@@ -119,6 +119,15 @@ export function holdAutomaticChange(options, current) {
     const desired = locked() ? initialBudget : estimate(apiForBudget);
     return locked() || !!current && Math.abs(desired - current) / current < 0.2;
 }
+// Do not interrupt a sufficiently high-bitrate stream already at source
+// resolution merely because measured bandwidth exceeds the server's cap.
+export function needsResolutionUpgrade(video, item, current) {
+    const streams = [ ...(item?.MediaStreams || []), ...(item?.MediaSources || []).flatMap(source => source.MediaStreams || []) ];
+    const sourceHeight = streams.find(stream => stream.Type === 'Video' && stream.Height > 0)?.Height;
+    if (!sourceHeight || !video?.videoHeight || !Number.isFinite(current)) return true;
+    const adequate = 8000000 * Math.min(4, (sourceHeight / 1080) ** 2);
+    return video.videoHeight < sourceHeight || current < adequate;
+}
 export function observeThroughput(manager, player) {
     if (!local || !window.PerformanceObserver) return () => undefined;
     adaptation = () => manager.setMaxStreamingBitrate({
@@ -158,7 +167,8 @@ export function observeThroughput(manager, player) {
             const desired = estimate(apiForBudget);
             const current = manager.getMaxStreamingBitrate(player);
             const buffer = activeVideo.buffered.length ? activeVideo.buffered.end(activeVideo.buffered.length - 1) - activeVideo.currentTime : 0;
-            if (desired < current * 0.7 && buffer < 5 || desired > current * 1.7 && buffer > 20 && performance.now() - firstFrame > 30000) {
+            if (desired < current * 0.7 && buffer < 5 || desired > current * 1.7 && buffer > 20 && performance.now() - firstFrame > 30000
+                && needsResolutionUpgrade(activeVideo, manager.currentItem(player), current)) {
                 lastAdaptation = performance.now();
                 diagnostics.adaptations++;
                 adaptation();
