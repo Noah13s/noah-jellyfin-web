@@ -1351,6 +1351,8 @@ export class PlaybackManager {
                 return player.setAudioStreamIndex(index);
             }
 
+            seerr.hooks.trackIntent(player, 'audio', index);
+
             if (self.playMethod(player) === 'Transcode' || !player.canSetAudioStreamIndex()) {
                 changeStream(player, getCurrentTicks(player), { AudioStreamIndex: index });
                 getPlayerData(player).audioStreamIndex = index;
@@ -1536,6 +1538,8 @@ export class PlaybackManager {
             if (player && !enableLocalPlaylistManagement(player)) {
                 return player.setSubtitleStreamIndex(index);
             }
+
+            seerr.hooks.trackIntent(player, 'subtitle', index);
 
             const currentStream = getCurrentSubtitleStream(player);
 
@@ -2808,11 +2812,11 @@ export class PlaybackManager {
                 let isIdFallbackNeeded = false;
 
                 autoSetNextTracks(prevSource, mediaStreams, trackOptions, user.Configuration.RememberAudioSelections, user.Configuration.RememberSubtitleSelections);
-                if (trackOptions.DefaultAudioStreamIndex != null) {
+                if (trackOptions.DefaultAudioStreamIndex != null && (!seerr.local || options.audioStreamIndex == null)) {
                     options.audioStreamIndex = trackOptions.DefaultAudioStreamIndex;
                     isIdFallbackNeeded = true;
                 }
-                if (trackOptions.DefaultSubtitleStreamIndex != null) {
+                if (trackOptions.DefaultSubtitleStreamIndex != null && (!seerr.local || options.subtitleStreamIndex == null)) {
                     options.subtitleStreamIndex = trackOptions.DefaultSubtitleStreamIndex;
                     isIdFallbackNeeded = true;
                 }
@@ -2906,6 +2910,7 @@ export class PlaybackManager {
 
         self.getPlaybackMediaSources = function (item, options) {
             options = options || {};
+            const selection = seerr.local ? options : {};
             const startPosition = options.startPositionTicks || 0;
             const mediaType = options.mediaType || item.MediaType;
             // TODO: Remove the true forceLocalPlayer hack
@@ -2922,15 +2927,15 @@ export class PlaybackManager {
                         startPosition,
                         isPlayback: true,
                         seerrPreparing: options.seerrPreparing === true,
-                        audioStreamIndex: null,
-                        subtitleStreamIndex: null,
+                        audioStreamIndex: selection.audioStreamIndex ?? null,
+                        subtitleStreamIndex: selection.subtitleStreamIndex ?? null,
                         enableDirectPlay: null,
                         enableDirectStream: null,
                         allowVideoStreamCopy: null,
                         allowAudioStreamCopy: null
                     };
 
-                    return getPlaybackInfo(player, apiClient, item, deviceProfile, null, null, mediaOptions).then(function (playbackInfoResult) {
+                    return getPlaybackInfo(player, apiClient, item, deviceProfile, selection.mediaSourceId || null, null, mediaOptions).then(function (playbackInfoResult) {
                         return playbackInfoResult.MediaSources;
                     });
                 });

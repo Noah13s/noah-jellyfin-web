@@ -13,6 +13,7 @@ const fixture = vi.hoisted(() => {
         play: vi.fn().mockResolvedValue(), stop: vi.fn().mockResolvedValue(),
         pause: vi.fn(), unpause: vi.fn(), seek: vi.fn(),
         getAudioStreamIndex: () => 2, getSubtitleStreamIndex: () => -1,
+        currentMediaSource: vi.fn(),
         recoverEmbeddedStream: vi.fn().mockResolvedValue(true),
         renegotiateEmbeddedStream: vi.fn().mockResolvedValue(true)
     };
@@ -37,7 +38,13 @@ function send(action) {
 beforeEach(async () => {
     vi.resetModules();
     vi.clearAllMocks();
-    fixture.api.getItem.mockResolvedValue({ Id: 'a'.repeat(32), UserData: {} });
+    const source = { Id: 'source', ETag: 'original', MediaStreams: [
+        { Type: 'Audio', Index: 2, Language: 'pol', IsDefault: true },
+        { Type: 'Audio', Index: 4, Language: 'fra' },
+        { Type: 'Subtitle', Index: 5, Language: 'eng' }
+    ] };
+    fixture.manager.currentMediaSource.mockReturnValue(source);
+    fixture.api.getItem.mockResolvedValue({ Id: 'a'.repeat(32), UserData: {}, MediaSources: [source] });
     fixture.player.prepareEmbedded.mockResolvedValue();
     fixture.manager.getPlaybackMediaSources.mockResolvedValue([]);
     // Native Safari playback may leave this promise pending while video plays.
@@ -69,6 +76,33 @@ afterEach(async () => {
     vi.restoreAllMocks();
 });
 describe('embedded recovery ownership', () => {
+    it('restores deliberate tracks into both preparation and Play after the iframe is replaced', async () => {
+        policy.hooks.trackIntent(fixture.player, 'audio', 4);
+        policy.hooks.trackIntent(fixture.player, 'subtitle', -1);
+        send('stop');
+        await vi.waitFor(() => expect(fixture.manager.stop).toHaveBeenCalled());
+        vi.resetModules();
+        fixture.manager.play.mockClear();
+        fixture.manager.getPlaybackMediaSources.mockClear();
+        hostParent = { postMessage: vi.fn() };
+        Object.defineProperty(window, 'parent', { configurable: true, value: hostParent });
+        const replacement = await import('./embedded');
+        replacement.enterEmbedded();
+        await vi.waitFor(() => expect(hostParent.postMessage.mock.calls.some(([value]) => value.event === 'prepared')).toBe(true));
+        send('play');
+        await vi.waitFor(() => expect(fixture.manager.play).toHaveBeenCalledOnce());
+        const choice = { mediaSourceId: 'source', audioStreamIndex: 4, subtitleStreamIndex: -1 };
+        expect(fixture.manager.getPlaybackMediaSources.mock.calls[0][1]).toMatchObject(choice);
+        expect(fixture.manager.play.mock.calls[0][0]).toMatchObject(choice);
+    });
+    it('does not save selections from another player or after exit', async () => {
+        policy.hooks.trackIntent({}, 'audio', 4);
+        expect(localStorage.getItem('noah-track-selection:v1')).toBeNull();
+        send('stop');
+        await vi.waitFor(() => expect(fixture.manager.stop).toHaveBeenCalled());
+        policy.hooks.trackIntent(fixture.player, 'audio', 4);
+        expect(localStorage.getItem('noah-track-selection:v1')).toBeNull();
+    });
     it('acknowledges play and accepts controls even when the native open remains pending', async () => {
         await vi.waitFor(() => expect(hostParent.postMessage.mock.calls.some(([value]) => value.kind === 'reply' && value.id === 'command-0' && value.ok)).toBe(true));
         send('pause');

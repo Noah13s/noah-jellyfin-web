@@ -35,6 +35,28 @@ this source player. Current resume/recovery regressions belong beside
 `src/plugins/noah` and the HTML player. New tests must import the maintained
 source, not copied deployment bundles.
 
+### Audio and subtitle intent across iframe replacement
+
+`trackSelection.test.js` covers manual choices on a French/Polish-default file,
+subtitles off, account/server/item/source isolation, replaced files, changed
+track metadata, expiry, bounded storage and unavailable browser storage.
+`embedded.test.js` destroys the embedded module and opens its replacement while
+retaining browser storage; both preparation and Play must receive the selected
+source ID and track indices. Existing recovery tests cover the in-place path.
+
+Only explicit local-player track changes are remembered. Defaults are not
+recorded as user intent. Choices live in this browser for up to 30 days, with
+at most 64 item/source records. Restoring requires the same account, server,
+item, source ID, source ETag and matching track metadata. Invalidated choices
+defer to the normal server selection. Private-storage denial must not prevent
+playback; in that case a choice cannot survive complete frame destruction.
+
+For live verification, use an isolated account and a multilingual file whose
+default audio differs from the manual selection. Choose audio and subtitles,
+close and reopen, and inspect the negotiated source/audio/subtitle indices;
+then check seek, recovery and subtitles off. A mocked DOM test does not prove
+Safari decoding, audio rendering or all historical incident causes.
+
 Native decoder/emulator and disposable Jellyfin storage/service checks are owned
 by the private Noah Stream integration repository. Physical Cast, Safari, HDR,
 Bluetooth and TCL frame pacing still require targeted device validation.
