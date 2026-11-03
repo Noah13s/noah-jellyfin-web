@@ -18,6 +18,7 @@ export const hooks = {
     metric: () => undefined,
     pauseIntent: () => undefined,
     seekIntent: () => undefined,
+    trackIntent: () => undefined,
     enter: () => false,
     ticket: () => 0,
     current: () => true,

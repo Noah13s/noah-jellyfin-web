@@ -7,6 +7,7 @@ import * as policy from './policy';
 import { classifyFailure, PlaybackHealth } from './health';
 import { PlaybackTelemetry } from './telemetry';
 import { refreshPreparation } from './preparation';
+import { createTrackSelections } from './trackSelection';
 import './style.scss';
 // Existing Cast transport remains isolated in its persistent sender frame.
 import './casting';
@@ -24,6 +25,7 @@ let playing = false;
 let opened = false;
 const health = new PlaybackHealth();
 const telemetry = new PlaybackTelemetry();
+const trackSelections = createTrackSelections();
 let recentFailure;
 let lastPosition = 0;
 let lastReportAt = 0;
@@ -153,6 +155,7 @@ async function play(ticks) {
         await manager.play({
             items: [candidate],
             startPositionTicks: ticks,
+            ...trackSelections.restore(api, candidate),
             enableRemotePlayers: false
         });
         telemetry.record('nativeOpenResolved', { durationMs: performance.now() - playAt });
@@ -432,6 +435,7 @@ export function enterEmbedded() {
         protocol.ready();
         await Promise.allSettled([policy.prepareStreamReady(api, item), player.prepareEmbedded?.(false), manager.getPlaybackMediaSources(item, {
             startPositionTicks: resume,
+            ...trackSelections.restore(api, item),
             enableRemotePlayers: false,
             seerrPreparing: true
         }).then(sources => {
@@ -441,6 +445,7 @@ export function enterEmbedded() {
         protocol.emit('prepared', snapshot());
         cancelPreparation = refreshPreparation(() => manager.getPlaybackMediaSources(item, {
             startPositionTicks: prepared.resume,
+            ...trackSelections.restore(api, item),
             enableRemotePlayers: false,
             seerrPreparing: true
         }), () => !opened && !stopped && !Reflect.get(document, 'hidden'));
@@ -512,6 +517,12 @@ Object.assign(policy.hooks, {
     },
     seekIntent: (owner, ticks) => {
         if (policy.local && owner === player && !stopped) pendingSeek = ticks / 10000000;
+    },
+    trackIntent: (owner, kind, index) => {
+        if (!policy.local || stopped || owner !== player) return;
+        const current = manager.currentItem(owner);
+        if (current?.Id !== item?.Id) return;
+        trackSelections.remember(api, current.Id, manager.currentMediaSource(owner), kind, index);
     },
     enter: enterEmbedded,
     ticket: playbackGeneration,
